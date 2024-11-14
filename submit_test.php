@@ -40,7 +40,7 @@ try {
     $status = isset($data['status']) ? $data['status'] : 'completed';
     
     $sql = "INSERT INTO test_submissions (
-        user_email, answers, flagged_questions, total_questions, 
+        user_email, answers, flagged_questions, total_questions,
         time_taken, status
     ) VALUES (?, ?, ?, ?, ?, ?)";
     
