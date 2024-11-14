@@ -1,5 +1,5 @@
-<?php session_start(); 
-require_once 'mail_config.php'; 
+<?php session_start();
+require_once 'mail_config.php';
 
 if (!isset($_SESSION['user_email'])) {
     header('Location: index.php');
@@ -12,6 +12,7 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Schedule Councelling- Zell Education</title>
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
@@ -151,19 +152,20 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Thank You for Completing the Test</h1>
-        <?php if(isset($_SESSION['message'])): ?>
+        <?php if (isset($_SESSION['message'])): ?>
             <div class="<?php echo $_SESSION['message_type']; ?>-message">
-                <?php 
-                    echo $_SESSION['message'];
-                    unset($_SESSION['message']);
-                    unset($_SESSION['message_type']);
+                <?php
+                echo $_SESSION['message'];
+                unset($_SESSION['message']);
+                unset($_SESSION['message_type']);
                 ?>
             </div>
         <?php endif; ?>
-        
+
         <div class="schedule-section">
             <h2>Schedule Your Interview</h2>
             <form action="save_schedule.php" method="POST">
@@ -174,7 +176,7 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
                 <div class="form-group">
                     <label>Select Time:</label>
                     <select name="time" required>
-                        <?php foreach($timeSlots as $slot): ?>
+                        <?php foreach ($timeSlots as $slot): ?>
                             <option value="<?php echo $slot; ?>"><?php echo $slot; ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -187,14 +189,16 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
     <script>
         flatpickr("#datePicker", {
             enable: [
-                "<?php echo $today ?>",
-                "<?php echo $tomorrow ?>"
+                "<?php echo date('Y-m-d') ?>",
+                "<?php echo date('Y-m-d', strtotime('+1 day')) ?>"
             ],
             dateFormat: "Y-m-d",
-            minDate: "today",
-            maxDate: "<?php echo $tomorrow ?>",
-            disableMobile: "true"
+            minDate: "<?php echo date('Y-m-d') ?>",
+            maxDate: "<?php echo date('Y-m-d', strtotime('+1 day')) ?>",
+            disableMobile: true,
+            inline: true 
         });
     </script>
 </body>
+
 </html>
