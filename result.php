@@ -189,14 +189,14 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
     <script>
         flatpickr("#datePicker", {
             enable: [
-                "<?php echo date('Y-m-d') ?>",
-                "<?php echo date('Y-m-d', strtotime('+1 day')) ?>"
+                "<?php echo date('Y-m-d',strtotime('+1 day')) ?>",
+                "<?php echo date('Y-m-d', strtotime('+2 day')) ?>"
             ],
             dateFormat: "Y-m-d",
-            minDate: "<?php echo date('Y-m-d') ?>",
-            maxDate: "<?php echo date('Y-m-d', strtotime('+1 day')) ?>",
+            minDate: "<?php echo date('Y-m-d'),strtotime('+1 day') ?>",
+            maxDate: "<?php echo date('Y-m-d', strtotime('+2 day')) ?>",
             disableMobile: true,
-            inline: true 
+            inline: true
         });
     </script>
 </body>
