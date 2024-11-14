@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_email'])) {
 // Get questions from questions.php
 $questions = json_decode(include 'questions.php', true);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,6 +42,10 @@ $questions = json_decode(include 'questions.php', true);
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
         }
 
         .content {
@@ -51,7 +54,7 @@ $questions = json_decode(include 'questions.php', true);
             padding: 20px;
             gap: 20px;
             max-width: 1400px;
-            margin: 0 auto;
+            margin: 80px auto 20px;
             width: 100%;
         }
 
@@ -61,6 +64,9 @@ $questions = json_decode(include 'questions.php', true);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 100px;
+            height: fit-content;
         }
 
         .right {
@@ -76,10 +82,8 @@ $questions = json_decode(include 'questions.php', true);
 
         .question-section {
             flex: 1;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
             padding: 20px;
+            margin-bottom: 20px;
         }
 
         .question-section h2 {
@@ -105,7 +109,7 @@ $questions = json_decode(include 'questions.php', true);
         .grid-box {
             background: white;
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
             border-radius: 4px;
@@ -135,7 +139,7 @@ $questions = json_decode(include 'questions.php', true);
 
         .options-form label {
             display: block;
-            padding: 12px 15px;
+            padding: 15px;
             background: #f8f9fa;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -159,7 +163,6 @@ $questions = json_decode(include 'questions.php', true);
             color: white;
             cursor: pointer;
             font-weight: 500;
-            transition: all 0.3s ease;
         }
 
         .btn.answered { background: #4CAF50; }
@@ -178,13 +181,14 @@ $questions = json_decode(include 'questions.php', true);
         .navigation-buttons {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
             padding: 20px;
             justify-content: center;
+            background: #f8f9fa;
+            border-top: 1px solid #ddd;
         }
 
         .nav-btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -198,6 +202,44 @@ $questions = json_decode(include 'questions.php', true);
             background: #660066;
         }
 
+        .nav-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .webcam-preview {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 160px;
+            height: 120px;
+            border: 2px solid #800080;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+
+        #warning-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            z-index: 2000;
+            display: none;
+            font-weight: bold;
+        }
+
+        #timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+
         .footer {
             background: #f5f5f5;
             padding: 20px;
@@ -205,21 +247,15 @@ $questions = json_decode(include 'questions.php', true);
             margin-top: auto;
         }
 
-        #timer {
-            font-weight: bold;
-            color: #fff;
-            background: rgba(0,0,0,0.2);
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-
         @media (max-width: 768px) {
             .content {
                 flex-direction: column;
+                margin-top: 120px;
             }
             
             .left {
                 width: 100%;
+                position: static;
             }
 
             .header {
@@ -227,10 +263,17 @@ $questions = json_decode(include 'questions.php', true);
                 gap: 10px;
                 text-align: center;
             }
+
+            .webcam-preview {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+            }
         }
     </style>
 </head>
 <body>
+    <div id="warning-message">Warning: Please return to the test window!</div>
     <div class="container">
         <header class="header">
             <div class="header-column">
@@ -251,7 +294,7 @@ $questions = json_decode(include 'questions.php', true);
                     <br>
                     <button class="btn answered">Answered <span class="badge answered-count">0</span></button>
                     <button class="btn flagged">Flagged <span class="badge flagged-count">0</span></button>
-                    <button class="btn pending">Pending <span class="badge pending-count">20</span></button>
+                    <button class="btn pending">Pending <span class="badge pending-count">10</span></button>
                 </div>
                 <div class="left-section-3">
                     <h3>Questions</h3>
@@ -297,11 +340,104 @@ $questions = json_decode(include 'questions.php', true);
     </div>
 
     <script>
-        const questions = <?php echo include 'questions.php'; ?>;
+        const securityConfig = {
+            mediaConstraints: {
+                video: true,
+                audio: true
+            },
+            violations: {
+                maxTabSwitches: 3,
+                maxWarnings: 5
+            }
+        };
+
+        let violationCount = 0;
+        let tabSwitchCount = 0;
         let currentQuestion = 1;
         let userAnswers = {};
         let flaggedQuestions = new Set();
+        const questions = <?php echo include 'questions.php'; ?>;
         const totalQuestions = questions.length;
+
+        async function initializeProctoring() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(securityConfig.mediaConstraints);
+                setupWebcamPreview(stream);
+                setupSecurityMeasures();
+                return true;
+            } catch (error) {
+                alert('Camera and microphone access are required for the test.');
+                window.location.href = 'index.php';
+                return false;
+            }
+        }
+
+        function setupWebcamPreview(stream) {
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.className = 'webcam-preview';
+            video.autoplay = true;
+            document.body.appendChild(video);
+        }
+
+        function setupSecurityMeasures() {
+            document.addEventListener('visibilitychange', handleTabSwitch);
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('copy', e => e.preventDefault());
+            document.addEventListener('paste', e => e.preventDefault());
+            document.addEventListener('keydown', handleKeyboardShortcuts);
+            
+            document.documentElement.requestFullscreen()
+                .catch(err => console.log('Fullscreen request failed'));
+        }
+
+        function handleTabSwitch() {
+            if (document.hidden) {
+                tabSwitchCount++;
+                logViolation('Tab switch detected');
+                showWarning();
+
+                if (tabSwitchCount >= securityConfig.violations.maxTabSwitches) {
+                    autoSubmitTest('Multiple tab switches detected');
+                }
+            }
+        }
+
+        function handleKeyboardShortcuts(e) {
+            if ((e.ctrlKey && e.key === 'c') || 
+                (e.ctrlKey && e.key === 'v') || 
+                (e.altKey && e.key === 'Tab')) {
+                e.preventDefault();
+                logViolation('Keyboard shortcut attempted');
+            }
+        }
+
+        function showWarning() {
+            const warning = document.getElementById('warning-message');
+            warning.style.display = 'block';
+            setTimeout(() => {
+                warning.style.display = 'none';
+            }, 3000);
+        }
+
+        function logViolation(violation) {
+            violationCount++;
+            
+            if (violationCount >= securityConfig.violations.maxWarnings) {
+                autoSubmitTest('Too many security violations');
+                return;
+            }
+
+            fetch('log_violation.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: '<?php echo $_SESSION['user_email']; ?>',
+                    violation,
+                    timestamp: new Date().toISOString()
+                })
+            });
+        }
 
         function updateQuestion(questionNum) {
             const question = questions.find(q => q.id === questionNum);
@@ -322,11 +458,9 @@ $questions = json_decode(include 'questions.php', true);
                 if (savedAnswer) savedAnswer.checked = true;
             }
 
-            // Update navigation button states
             document.getElementById('prevBtn').disabled = questionNum === 1;
             document.getElementById('nextBtn').disabled = questionNum === totalQuestions;
             
-            // Update flag button state
             const flagBtn = document.getElementById('flagBtn');
             flagBtn.textContent = flaggedQuestions.has(questionNum) ? 'Unflag Question' : 'Flag for Review';
         }
@@ -348,7 +482,7 @@ $questions = json_decode(include 'questions.php', true);
                     (minutes < 10 ? "0" + minutes : minutes) + ":" +
                     (seconds < 10 ? "0" + seconds : seconds);
 
-                if (timer <= 300) { // Last 5 minutes
+                if (timer <= 300) {
                     display.style.color = '#ff4444';
                 }
 
@@ -359,7 +493,12 @@ $questions = json_decode(include 'questions.php', true);
             }, 1000);
         }
 
-        function submitTest(isAutoSubmit = false) {
+        function autoSubmitTest(reason) {
+            alert(`Test will be automatically submitted. Reason: ${reason}`);
+            submitTest(true);
+        }
+
+        async function submitTest(isAutoSubmit = false) {
             if (!isAutoSubmit && !confirm('Are you sure you want to submit the test?')) {
                 return;
             }
@@ -367,28 +506,43 @@ $questions = json_decode(include 'questions.php', true);
             const testData = {
                 answers: userAnswers,
                 flagged: Array.from(flaggedQuestions),
-                email: '<?php echo $_SESSION['user_email']; ?>'
+                email: '<?php echo $_SESSION['user_email']; ?>',
+                violations: {
+                    tabSwitches: tabSwitchCount,
+                    totalViolations: violationCount
+                }
             };
 
-            fetch('submit_test.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(testData)
-            })
-            .then(response => response.json())
-            .then(result => {
+            try {
+                const response = await fetch('submit_test.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+
+                const result = await response.json();
+
                 if (result.success) {
+                    if (document.fullscreenElement) {
+                        await document.exitFullscreen();
+                    }
+                    
+                    const videoElement = document.querySelector('.webcam-preview');
+                    if (videoElement) {
+                        const stream = videoElement.srcObject;
+                        const tracks = stream.getTracks();
+                        tracks.forEach(track => track.stop());
+                        videoElement.remove();
+                    }
+
                     window.location.href = 'result.php';
                 } else {
                     alert('Error submitting test: ' + result.error);
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
                 alert('Error submitting test. Please try again.');
-            });
+            }
         }
 
         // Event Listeners
@@ -443,7 +597,6 @@ $questions = json_decode(include 'questions.php', true);
 
         document.getElementById('submitTest').addEventListener('click', () => submitTest());
 
-        // Prevent accidental navigation
         window.addEventListener('beforeunload', (e) => {
             if (Object.keys(userAnswers).length > 0) {
                 e.preventDefault();
@@ -452,10 +605,22 @@ $questions = json_decode(include 'questions.php', true);
         });
 
         // Initialize
-        window.onload = function() {
+        window.onload = async function() {
+            const proctorInitialized = await initializeProctoring();
+            if (!proctorInitialized) return;
+            
             startTimer(20, document.querySelector('#timer'));
             updateQuestion(1);
             updateStats();
+
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    logViolation('Fullscreen mode exited');
+                    document.documentElement.requestFullscreen().catch(err => {
+                        autoSubmitTest('Failed to maintain fullscreen mode');
+                    });
+                }
+            });
         };
     </script>
 </body>

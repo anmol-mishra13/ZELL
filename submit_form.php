@@ -82,11 +82,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->execute()) {
             $_SESSION['message'] = "Form submitted successfully!";
             $_SESSION['message_type'] = "success";
-            $_SESSION['user_email'] = $formData['email']; // Store email for test session
+            $_SESSION['name'] = $formData['name'];
+            $_SESSION['user_email'] = $formData['email'];
+
             
             // Return success with redirect URL for AJAX
             echo json_encode([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Form submitted successfully!',
                 'redirect' => 'test.php'
             ]);
