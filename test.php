@@ -1,14 +1,13 @@
 <?php
 session_start();
 
-// Redirect if user is not logged in
 if (!isset($_SESSION['user_email'])) {
     header('Location: index.php');
     exit();
 }
 
-// Timer settings
-$test_duration = 20; // minutes
+// Get questions from questions.php
+$questions = json_decode(include 'questions.php', true);
 ?>
 
 <!DOCTYPE html>
@@ -17,7 +16,219 @@ $test_duration = 20; // minutes
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assessment - Zell Education</title>
-    <link rel="stylesheet" href="assets/css/test.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #800080;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .left {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .question-section {
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .question-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .question {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #444;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .grid-box {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .grid-box:hover {
+            background: #f0f0f0;
+        }
+
+        .grid-box.answered {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .grid-box.flagged {
+            background: #FFC107;
+            color: black;
+        }
+
+        .options-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .options-form label {
+            display: block;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .options-form label:hover {
+            background: #e9ecef;
+        }
+
+        .options-form input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            margin: 5px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn.answered { background: #4CAF50; }
+        .btn.flagged { background: #FFC107; color: black; }
+        .btn.pending { background: #9E9E9E; }
+
+        .badge {
+            background: white;
+            color: black;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-size: 0.9em;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #800080;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #660066;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        #timer {
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .left {
+                width: 100%;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -29,9 +240,10 @@ $test_duration = 20; // minutes
                 <h2>Online Assessment Test</h2>
             </div>
             <div class="header-column">
-                <span>Time Remaining: <span id="timer"><?php echo $test_duration; ?>:00</span></span>
+                <span>Time Remaining: <span id="timer">20:00</span></span>
             </div>
         </header>
+
         <main class="content">
             <section class="left">
                 <div class="left-section-2">
@@ -47,26 +259,35 @@ $test_duration = 20; // minutes
                     <hr>
                     <br>
                     <div class="grid-container">
-                        <?php
-                        for ($i = 1; $i <= 20; $i++) {
-                            echo "<div class='grid-box' data-question='$i'>$i</div>";
-                        }
-                        ?>
+                        <?php foreach ($questions as $index => $question): ?>
+                            <div class="grid-box" data-question="<?php echo $question['id']; ?>">
+                                <?php echo $question['id']; ?>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </section>
+
             <section class="right">
-                <div id="question-container">
-                    <!-- Questions will be loaded dynamically -->
+                <div class="question-section">
+                    <h2>Question No. <span id="current-question">1</span></h2>
+                    <p id="question-text" class="question"></p>
+                    <form class="options-form">
+                        <div id="options-container">
+                            <!-- Options will be dynamically inserted here -->
+                        </div>
+                        <button type="button" class="clear-btn nav-btn">Clear Response</button>
+                    </form>
                 </div>
                 <div class="navigation-buttons">
                     <button id="prevBtn" class="nav-btn">Previous</button>
                     <button id="nextBtn" class="nav-btn">Next</button>
-                    <button id="flagBtn" class="nav-btn flag">Flag for Review</button>
-                    <button id="submitTest" class="nav-btn submit">Submit Test</button>
+                    <button id="flagBtn" class="nav-btn">Flag for Review</button>
+                    <button id="submitTest" class="nav-btn">Submit Test</button>
                 </div>
             </section>
         </main>
+
         <footer class="footer">
             <div class="container copyright text-center mt-4">
                 <p>© <span>Copyright</span> <strong class="px-1 sitename">ZELL 2024</strong> <span>All Rights Reserved</span></p>
@@ -75,27 +296,51 @@ $test_duration = 20; // minutes
         </footer>
     </div>
 
-    <!-- Question Template -->
-    <template id="question-template">
-        <div class="question-section">
-            <h2>Question No. <span class="question-number"></span></h2>
-            <p class="question-text"></p>
-            <form class="options-form">
-                <div class="options-container"></div>
-                <button type="button" class="clear-btn">Clear Response</button>
-            </form>
-        </div>
-    </template>
-
     <script>
-        const questions = <?php include 'questions.php'; ?>;
+        const questions = <?php echo include 'questions.php'; ?>;
         let currentQuestion = 1;
         let userAnswers = {};
         let flaggedQuestions = new Set();
+        const totalQuestions = questions.length;
+
+        function updateQuestion(questionNum) {
+            const question = questions.find(q => q.id === questionNum);
+            if (!question) return;
+
+            document.getElementById('current-question').textContent = questionNum;
+            document.getElementById('question-text').textContent = question.text;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = question.options.map((option, index) => `
+                <label>
+                    <input type="radio" name="answer" value="${option}"> ${option}
+                </label>
+            `).join('');
+
+            if (userAnswers[questionNum]) {
+                const savedAnswer = optionsContainer.querySelector(`input[value="${userAnswers[questionNum]}"]`);
+                if (savedAnswer) savedAnswer.checked = true;
+            }
+
+            // Update navigation button states
+            document.getElementById('prevBtn').disabled = questionNum === 1;
+            document.getElementById('nextBtn').disabled = questionNum === totalQuestions;
+            
+            // Update flag button state
+            const flagBtn = document.getElementById('flagBtn');
+            flagBtn.textContent = flaggedQuestions.has(questionNum) ? 'Unflag Question' : 'Flag for Review';
+        }
+
+        function updateStats() {
+            document.querySelector('.answered-count').textContent = Object.keys(userAnswers).length;
+            document.querySelector('.flagged-count').textContent = flaggedQuestions.size;
+            document.querySelector('.pending-count').textContent = 
+                totalQuestions - Object.keys(userAnswers).length;
+        }
 
         function startTimer(duration, display) {
             let timer = duration * 60;
-            const timerInterval = setInterval(function() {
+            const timerInterval = setInterval(() => {
                 const minutes = parseInt(timer / 60, 10);
                 const seconds = parseInt(timer % 60, 10);
 
@@ -103,14 +348,22 @@ $test_duration = 20; // minutes
                     (minutes < 10 ? "0" + minutes : minutes) + ":" +
                     (seconds < 10 ? "0" + seconds : seconds);
 
+                if (timer <= 300) { // Last 5 minutes
+                    display.style.color = '#ff4444';
+                }
+
                 if (--timer < 0) {
                     clearInterval(timerInterval);
-                    submitTest();
+                    submitTest(true);
                 }
             }, 1000);
         }
 
-        function submitTest() {
+        function submitTest(isAutoSubmit = false) {
+            if (!isAutoSubmit && !confirm('Are you sure you want to submit the test?')) {
+                return;
+            }
+
             const testData = {
                 answers: userAnswers,
                 flagged: Array.from(flaggedQuestions),
@@ -128,20 +381,82 @@ $test_duration = 20; // minutes
             .then(result => {
                 if (result.success) {
                     window.location.href = 'result.php';
+                } else {
+                    alert('Error submitting test: ' + result.error);
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting test. Please try again.');
+            });
         }
 
+        // Event Listeners
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                updateQuestion(currentQuestion);
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentQuestion < totalQuestions) {
+                currentQuestion++;
+                updateQuestion(currentQuestion);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('grid-box')) {
+                currentQuestion = parseInt(e.target.dataset.question);
+                updateQuestion(currentQuestion);
+            }
+        });
+
+        document.getElementById('options-container').addEventListener('change', (e) => {
+            if (e.target.type === 'radio') {
+                userAnswers[currentQuestion] = e.target.value;
+                document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('answered');
+                updateStats();
+            }
+        });
+
+        document.getElementById('flagBtn').addEventListener('click', () => {
+            const questionBox = document.querySelector(`[data-question="${currentQuestion}"]`);
+            if (flaggedQuestions.has(currentQuestion)) {
+                flaggedQuestions.delete(currentQuestion);
+                questionBox.classList.remove('flagged');
+            } else {
+                flaggedQuestions.add(currentQuestion);
+                questionBox.classList.add('flagged');
+            }
+            updateQuestion(currentQuestion);
+            updateStats();
+        });
+
+        document.querySelector('.clear-btn').addEventListener('click', () => {
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+            delete userAnswers[currentQuestion];
+            document.querySelector(`[data-question="${currentQuestion}"]`).classList.remove('answered');
+            updateStats();
+        });
+
+        document.getElementById('submitTest').addEventListener('click', () => submitTest());
+
+        // Prevent accidental navigation
+        window.addEventListener('beforeunload', (e) => {
+            if (Object.keys(userAnswers).length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Initialize
         window.onload = function() {
-            const display = document.querySelector('#timer');
-            startTimer(<?php echo $test_duration; ?>, display);
-            loadQuestion(currentQuestion);
+            startTimer(20, document.querySelector('#timer'));
+            updateQuestion(1);
             updateStats();
         };
-
-        // Add event listeners and implement other required functions
-        // ...
     </script>
 </body>
 </html>
