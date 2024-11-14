@@ -96,7 +96,7 @@ require_once 'assets/vendor/setup.php';
                         <p>your path to global opportunities<br> Get access to<span class="change_content"></span></p>
                         <div class="d-flex">
                             <a class="btn-getstarted" data-bs-toggle="modal" data-bs-target="#quizModal">Start Assessment</a>
-                            <a href="https://youtu.be/jhhu451wzag" class="glightbox btn-watch-video d-flex align-items-center">
+                            <a href="https://youtu.be/jhhu451wzag" target="_blank" class="glightbox btn-watch-video d-flex align-items-center">
                                 <i class="bi bi-play-circle"></i><span>WHY ZELL?</span>
                             </a>
                         </div>

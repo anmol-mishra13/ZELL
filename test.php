@@ -277,7 +277,7 @@ $questions = json_decode(include 'questions.php', true);
     <div class="container">
         <header class="header">
             <div class="header-column">
-                <span>Welcome, <?php echo htmlspecialchars($_SESSION['user_email']); ?></span>
+                <span>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
             </div>
             <div class="header-column">
                 <h2>Online Assessment Test</h2>
