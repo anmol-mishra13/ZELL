@@ -1,58 +1,100 @@
 <?php
-header('Content-Type: application/json');
+session_start();
 
-// Decode the JSON-formatted input data
-$data = json_decode(file_get_contents('php://input'), true);
+// Database configuration for MySQL
+$db_config = [
+    'host' => 'localhost',
+    'username' => 'root', // Update with your MySQL username
+    'password' => '', // Update with your MySQL password
+    'database' => 'zell_education'
+];
 
-// Check if required fields are provided
-if (!isset($data['name'], $data['email'], $data['userType'])) {
-    echo json_encode(["error" => "Missing required fields"]);
+function sanitize_input($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    try {
+        // MySQL connection
+        $conn = new mysqli(
+            $db_config['host'],
+            $db_config['username'],
+            $db_config['password'],
+            $db_config['database']
+        );
+
+        if ($conn->connect_error) {
+            throw new Exception("Connection failed: " . $conn->connect_error);
+        }
+
+        $userType = sanitize_input($_POST['user_type']);
+        
+        // Initialize fields
+        $formData = [
+            'name' => null,
+            'email' => null,
+            'qualification' => null,
+            'university' => null,
+            'guardian_number' => null,
+            'designation' => null,
+            'company' => null,
+            'ctc' => null,
+            'user_type' => $userType
+        ];
+
+        // Set required fields based on user type
+        $requiredFields = ($userType === 'student') 
+            ? ['name', 'email', 'qualification', 'university', 'guardian_number']
+            : ['name', 'email', 'designation', 'company', 'ctc'];
+
+        // Validate and sanitize fields
+        foreach ($requiredFields as $field) {
+            if (!isset($_POST[$field]) || empty($_POST[$field])) {
+                throw new Exception("Missing required field: $field");
+            }
+            $formData[$field] = sanitize_input($_POST[$field]);
+        }
+
+        // Prepare MySQL statement
+        $sql = "INSERT INTO user_profiles (
+                name, email, qualification, university, guardian_number,
+                designation, company, ctc, user_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt = $conn->prepare($sql);
+        
+        // Bind parameters
+        $stmt->bind_param("sssssssss", 
+            $formData['name'],
+            $formData['email'],
+            $formData['qualification'],
+            $formData['university'],
+            $formData['guardian_number'],
+            $formData['designation'],
+            $formData['company'],
+            $formData['ctc'],
+            $formData['user_type']
+        );
+
+        if ($stmt->execute()) {
+            $_SESSION['message'] = "Form submitted successfully!";
+            $_SESSION['message_type'] = "success";
+            echo json_encode(['success' => true, 'message' => 'Form submitted successfully!']);
+        } else {
+            throw new Exception("Error executing query: " . $stmt->error);
+        }
+
+        $stmt->close();
+        $conn->close();
+
+    } catch(Exception $e) {
+        $_SESSION['message'] = "Error: " . $e->getMessage();
+        $_SESSION['message_type'] = "danger";
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
     exit();
 }
-
-// Database credentials
-$servername = "localhost";
-$username = "postgres"; // Replace with your MySQL username
-$password = "password"; // Replace with your MySQL password
-$database = "zell_education"; // Replace with your database name
-
-// Create a new database connection
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Check for connection errors
-if ($conn->connect_error) {
-    echo json_encode(["error" => "Connection failed: " . $conn->connect_error]);
-    exit();
-}
-
-// SQL statement with placeholders to prevent SQL injection
-$stmt = $conn->prepare("
-    INSERT INTO user_profiles (name, email, qualification, university, guardian_number, designation, company, ctc, user_type)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-");
-
-// Bind the parameters for the SQL query
-$stmt->bind_param(
-    "sssssssss",
-    $data['name'],
-    $data['email'],
-    $data['qualification'] ?? null,
-    $data['university'] ?? null,
-    $data['guardian_number'] ?? null,
-    $data['designation'] ?? null,
-    $data['company'] ?? null,
-    $data['ctc'] ?? null,
-    $data['userType']
-);
-
-// Execute the query and check for errors
-if ($stmt->execute()) {
-    echo json_encode(["success" => "Form submitted successfully!"]);
-} else {
-    echo json_encode(["error" => "Error submitting form: " . $stmt->error]);
-}
-
-// Close the statement and connection
-$stmt->close();
-$conn->close();
 ?>

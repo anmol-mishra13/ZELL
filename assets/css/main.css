@@ -446,7 +446,7 @@ h6 {
   color: var(--default-color);
   background-color: var(--background-color);
   font-size: 14px;
-  padding-bottom: 50px;
+  /* padding-bottom: 50px; */
   position: relative;
 }
 
@@ -456,13 +456,13 @@ h6 {
   font-size: 16px;
   font-weight: bold;
   position: relative;
-  padding-bottom: 12px;
+  /* padding-bottom: 12px; */
 }
 
 
 .footer .copyright {
-  padding-top: 25px;
-  padding-bottom: 25px;
+  /* padding-top: 25px; */
+  padding-bottom: 2px;
   border-top: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
 }
 

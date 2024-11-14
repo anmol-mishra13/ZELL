@@ -7,35 +7,104 @@
     const professionalForm = document.getElementById('professionalForm');
     const userType = document.querySelector('input[name="userType"]:checked').value;
 
+    // Toggle form visibility
     if (userType === 'student') {
       studentForm.classList.add('active');
       professionalForm.classList.remove('active');
+      
+      // Handle required fields for student form
+      toggleRequiredFields('student');
     } else {
       professionalForm.classList.add('active');
       studentForm.classList.remove('active');
+      
+      // Handle required fields for professional form
+      toggleRequiredFields('professional');
+    }
+  }
+
+  // Function to toggle required fields based on form type
+  function toggleRequiredFields(formType) {
+    // Student form fields
+    const studentFields = {
+      'studentName': true,
+      'studentEmail': true,
+      'studentQualification': true,
+      'studentUniversity': true,
+      'guardianNumber': true
+    };
+
+    // Professional form fields
+    const professionalFields = {
+      'professionalName': true,
+      'professionalEmail': true,
+      'professionalDesignation': true,
+      'currentCompany': true,
+      'currentCTC': true
+    };
+
+    // Set required attribute based on form type
+    if (formType === 'student') {
+      // Enable student form fields
+      Object.keys(studentFields).forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.required = studentFields[fieldId];
+          field.disabled = false;
+        }
+      });
+
+      // Disable professional form fields
+      Object.keys(professionalFields).forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.required = false;
+          field.disabled = true;
+          field.value = ''; // Clear values
+        }
+      });
+    } else {
+      // Enable professional form fields
+      Object.keys(professionalFields).forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.required = professionalFields[fieldId];
+          field.disabled = false;
+        }
+      });
+
+      // Disable student form fields
+      Object.keys(studentFields).forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.required = false;
+          field.disabled = true;
+          field.value = ''; // Clear values
+        }
+      });
     }
   }
 
   // Submit function
   window.submitForm = function(event) {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
     const userType = document.querySelector('input[name="userType"]:checked').value;
-    let formData;
+    
+    // Get active form
+    const activeForm = userType === 'student' ? 
+      document.getElementById('studentForm') : 
+      document.getElementById('professionalForm');
 
-    if (userType === 'student') {
-      formData = new FormData(document.getElementById('quizFormStudent'));
-    } else {
-      formData = new FormData(document.getElementById('quizFormProfessional'));
-    }
-
-    // Convert FormData to JSON
-    const data = {};
-    formData.forEach((value, key) => {
-      data[key] = value;
+    // Get all enabled fields from active form
+    const formData = new FormData();
+    const inputs = activeForm.querySelectorAll('input:not([disabled])');
+    
+    inputs.forEach(input => {
+      formData.append(input.name, input.value);
     });
-    data.user_type = userType; // Add user type to data
+    formData.append('user_type', userType);
 
-    // Show loading indicator (optional)
+    // Show loading indicator
     const loadingIndicator = document.createElement('div');
     loadingIndicator.textContent = 'Submitting...';
     loadingIndicator.style.position = 'fixed';
@@ -48,19 +117,20 @@
     loadingIndicator.style.borderRadius = '5px';
     document.body.appendChild(loadingIndicator);
 
-    // Submit the data using fetch to PHP endpoint
+    // Submit form data
     fetch('submit_form.php', {
       method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      body: formData
     })
     .then(response => response.json())
     .then(result => {
-      loadingIndicator.remove(); // Remove loading indicator
+      loadingIndicator.remove();
       if (result.success) {
         alert('Form submitted successfully!');
+        // Reset form and close modal
+        document.getElementById('userForm').reset();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('quizModal'));
+        modal.hide();
       } else {
         alert('Error submitting form: ' + result.error);
       }
@@ -71,93 +141,9 @@
     });
   }
 
-  // Other UI and utility functions (e.g., animations, scroll events)
-  function toggleScrolled() {
-    const selectBody = document.querySelector('body');
-    const selectHeader = document.querySelector('#header');
-    if (!selectHeader.classList.contains('scroll-up-sticky') && !selectHeader.classList.contains('sticky-top') && !selectHeader.classList.contains('fixed-top')) return;
-    window.scrollY > 100 ? selectBody.classList.add('scrolled') : selectBody.classList.remove('scrolled');
-  }
-
-  document.addEventListener('scroll', toggleScrolled);
-  window.addEventListener('load', toggleScrolled);
-
-  const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
-
-  function mobileNavToggle() {
-    document.querySelector('body').classList.toggle('mobile-nav-active');
-    mobileNavToggleBtn.classList.toggle('bi-list');
-    mobileNavToggleBtn.classList.toggle('bi-x');
-  }
-  mobileNavToggleBtn.addEventListener('click', mobileNavToggle);
-
-  document.querySelectorAll('#navmenu a').forEach(navmenu => {
-    navmenu.addEventListener('click', () => {
-      if (document.querySelector('.mobile-nav-active')) {
-        mobileNavToggle();
-      }
-    });
-  });
-
-  const preloader = document.querySelector('#preloader');
-  if (preloader) {
-    window.addEventListener('load', () => {
-      preloader.remove();
-    });
-  }
-
-  let scrollTop = document.querySelector('.scroll-top');
-
-  function toggleScrollTop() {
-    if (scrollTop) {
-      window.scrollY > 100 ? scrollTop.classList.add('active') : scrollTop.classList.remove('active');
-    }
-  }
-  scrollTop.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  });
-
-  window.addEventListener('load', toggleScrollTop);
-  document.addEventListener('scroll', toggleScrollTop);
-
-  function aosInit() {
-    AOS.init({
-      duration: 600,
-      easing: 'ease-in-out',
-      once: true,
-      mirror: false
-    });
-  }
-  window.addEventListener('load', aosInit);
-
-  const glightbox = GLightbox({
-    selector: '.glightbox'
-  });
-
-  function initSwiper() {
-    document.querySelectorAll(".init-swiper").forEach(function(swiperElement) {
-      let config = JSON.parse(
-        swiperElement.querySelector(".swiper-config").innerHTML.trim()
-      );
-
-      if (swiperElement.classList.contains("swiper-tab")) {
-        initSwiperWithCustomPagination(swiperElement, config);
-      } else {
-        new Swiper(swiperElement, config);
-      }
-    });
-  }
-
-  window.addEventListener("load", initSwiper);
-
-  document.querySelectorAll('.faq-item h3, .faq-item .faq-toggle').forEach((faqItem) => {
-    faqItem.addEventListener('click', () => {
-      faqItem.parentNode.classList.toggle('faq-active');
-    });
+  // Initialize form on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    toggleForm(); // Set initial state
   });
 
 })();
