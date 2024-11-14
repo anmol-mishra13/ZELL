@@ -1,8 +1,8 @@
-(function() {
+(function () {
   "use strict";
 
   // Toggle between student and professional form sections
-  window.toggleForm = function() {
+  window.toggleForm = function () {
     const studentForm = document.getElementById('studentForm');
     const professionalForm = document.getElementById('professionalForm');
     const userType = document.querySelector('input[name="userType"]:checked').value;
@@ -11,13 +11,13 @@
     if (userType === 'student') {
       studentForm.classList.add('active');
       professionalForm.classList.remove('active');
-      
+
       // Handle required fields for student form
       toggleRequiredFields('student');
     } else {
       professionalForm.classList.add('active');
       studentForm.classList.remove('active');
-      
+
       // Handle required fields for professional form
       toggleRequiredFields('professional');
     }
@@ -86,22 +86,11 @@
   }
 
   // Submit function
-  window.submitForm = function(event) {
+  // Form submission handler
+  window.submitForm = function (event) {
     event.preventDefault();
     const userType = document.querySelector('input[name="userType"]:checked').value;
-    
-    // Get active form
-    const activeForm = userType === 'student' ? 
-      document.getElementById('studentForm') : 
-      document.getElementById('professionalForm');
-
-    // Get all enabled fields from active form
-    const formData = new FormData();
-    const inputs = activeForm.querySelectorAll('input:not([disabled])');
-    
-    inputs.forEach(input => {
-      formData.append(input.name, input.value);
-    });
+    let formData = new FormData(document.getElementById('userForm'));
     formData.append('user_type', userType);
 
     // Show loading indicator
@@ -117,32 +106,29 @@
     loadingIndicator.style.borderRadius = '5px';
     document.body.appendChild(loadingIndicator);
 
-    // Submit form data
     fetch('submit_form.php', {
       method: 'POST',
       body: formData
     })
-    .then(response => response.json())
-    .then(result => {
-      loadingIndicator.remove();
-      if (result.success) {
-        alert('Form submitted successfully!');
-        // Reset form and close modal
-        document.getElementById('userForm').reset();
-        const modal = bootstrap.Modal.getInstance(document.getElementById('quizModal'));
-        modal.hide();
-      } else {
-        alert('Error submitting form: ' + result.error);
-      }
-    })
-    .catch(error => {
-      loadingIndicator.remove();
-      alert('Error submitting form: ' + error.message);
-    });
+      .then(response => response.json())
+      .then(result => {
+        loadingIndicator.remove();
+        if (result.success) {
+          if (result.redirect) {
+            window.location.href = result.redirect;
+          }
+        } else {
+          alert('Error submitting form: ' + result.error);
+        }
+      })
+      .catch(error => {
+        loadingIndicator.remove();
+        alert('Error submitting form: ' + error.message);
+      });
   }
 
   // Initialize form on page load
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     toggleForm(); // Set initial state
   });
 

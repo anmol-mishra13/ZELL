@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $conn->prepare($sql);
         
         // Bind parameters
-        $stmt->bind_param("sssssssss", 
+        $stmt->bind_param("sssssssss",
             $formData['name'],
             $formData['email'],
             $formData['qualification'],
@@ -82,13 +82,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->execute()) {
             $_SESSION['message'] = "Form submitted successfully!";
             $_SESSION['message_type'] = "success";
-            echo json_encode(['success' => true, 'message' => 'Form submitted successfully!']);
+            $_SESSION['user_email'] = $formData['email']; // Store email for test session
+            
+            // Return success with redirect URL for AJAX
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Form submitted successfully!',
+                'redirect' => 'test.php'
+            ]);
         } else {
             throw new Exception("Error executing query: " . $stmt->error);
         }
 
         $stmt->close();
         $conn->close();
+
 
     } catch(Exception $e) {
         $_SESSION['message'] = "Error: " . $e->getMessage();
