@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require 'mail_config.php';
 if (!isset($_SESSION['user_email'])) {
     echo json_encode(['success' => false, 'error' => 'Session expired']);
     exit();
@@ -49,19 +49,21 @@ try {
     );
     
     if ($stmt->execute()) {
-        // Send email notification
         $to = $email;
         $subject = "Test Completion Confirmation";
-        $message = "Thank you for completing the test. Please proceed to schedule your interview.";
-        $headers = "From: noreply@zell.com";
+        $message = "
+            <html>
+            <body>
+                <h2>Test Completion Confirmation</h2>
+                <p>Dear Student,</p>
+                <p>Thank you for completing the test. Please proceed to schedule your interview.</p>
+                <p>Best regards,<br>Zell Education Team</p>
+            </body>
+            </html>";
         
-        mail($to, $subject, $message, $headers);
-        
+        sendMail($to, $subject, $message);
         echo json_encode(['success' => true]);
-    } else {
-        throw new Exception("Error saving test submission");
     }
-
     $stmt->close();
     $conn->close();
 

@@ -32,8 +32,10 @@ try {
         
         mail($to, $subject, $message, $headers);
         
-        $_SESSION['message'] = "Councellingscheduled successfully!";
+        $_SESSION['message'] = "Councelling Scheduled successfully!";
         $_SESSION['message_type'] = "success";
+        $_SESSION['interview_date'] = $date;
+        $_SESSION['interview_time'] = $time;
     } else {
         throw new Exception("Error scheduling interview");
     }
