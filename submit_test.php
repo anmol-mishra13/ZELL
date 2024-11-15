@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'mail_config.php';
+require 'db_config.php';
 
 if (!isset($_SESSION['user_email'])) {
     echo json_encode(['success' => false, 'error' => 'Session expired']);
@@ -10,7 +11,13 @@ if (!isset($_SESSION['user_email'])) {
 $data = json_decode(file_get_contents('php://input'), true);
 
 try {
-    $conn = new mysqli('localhost', 'root', '', 'zell_education');
+    $conn = $conn = new mysqli(
+        $db_config['host'],
+        $db_config['username'],
+        $db_config['password'],
+        $db_config['database']
+    );
+
     if ($conn->connect_error) throw new Exception("Connection failed: " . $conn->connect_error);
 
     // Get correct answers from questions

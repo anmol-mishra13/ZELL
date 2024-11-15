@@ -2,12 +2,7 @@
 session_start();
 
 // Database configuration for MySQL
-$db_config = [
-    'host' => 'localhost',
-    'username' => 'root', // Update with your MySQL username
-    'password' => '', // Update with your MySQL password
-    'database' => 'zell_education'
-];
+require_once 'db_config.php';
 
 function sanitize_input($data) {
     $data = trim($data);

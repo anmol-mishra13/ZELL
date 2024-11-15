@@ -10,7 +10,13 @@ if (!isset($_SESSION['user_email'])) {
 $data = json_decode(file_get_contents('php://input'), true);
 
 try {
-    $conn = new mysqli('localhost', 'root', '', 'zell_education');
+    $conn = $conn = new mysqli(
+            $db_config['host'],
+            $db_config['username'],
+            $db_config['password'],
+            $db_config['database']
+        );
+
     
     if ($conn->connect_error) {
         throw new Exception("Connection failed: " . $conn->connect_error);
