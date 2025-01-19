@@ -25,6 +25,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Connection failed: " . $conn->connect_error);
         }
 
+        // Create the user_profiles table if it doesn't exist
+        $createTableSQL = "CREATE TABLE IF NOT EXISTS user_profiles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            qualification VARCHAR(255),
+            university VARCHAR(255),
+            guardian_number VARCHAR(15),
+            designation VARCHAR(255),
+            company VARCHAR(255),
+            ctc VARCHAR(255),
+            user_type ENUM('student', 'professional') NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )";
+
+        if (!$conn->query($createTableSQL)) {
+            throw new Exception("Error creating table: " . $conn->error);
+        }
+
         $userType = sanitize_input($_POST['user_type']);
         
         // Initialize fields
@@ -93,7 +112,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt->close();
         $conn->close();
-
 
     } catch(Exception $e) {
         $_SESSION['message'] = "Error: " . $e->getMessage();
