@@ -93,7 +93,7 @@ require_once 'assets/vendor/setup.php';
                 <div class="row gy-4">
                     <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
                         <h1>Kickstart your ACCA journey with Zell</h1>
-                        <p>your path to global opportunities<br> Get access to<span class="change_content"></span></p>
+                        <p>your path to global opportunities<br> Get access to <span class="change_content"></span></p>
                         <div class="d-flex">
                             <a class="btn-getstarted" data-bs-toggle="modal" data-bs-target="#quizModal">Start Assessment</a>
                             <a href="https://youtu.be/jhhu451wzag" target="_blank" class="glightbox btn-watch-video d-flex align-items-center">
@@ -141,31 +141,31 @@ require_once 'assets/vendor/setup.php';
                             <!-- Student Form Section -->
                             <div id="studentForm" class="form-section active">
                                 <div class="mb-3">
-                                    <label for="studentName" class="form-label">Name</label>
+                                    <label for="studentName" class="form-label" style="color:white">Name</label>
                                     <input type="text" class="form-control" name="name" id="studentName" required
                                            oninvalid="this.setCustomValidity('Please enter your name')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="studentEmail" class="form-label">Registered Email ID</label>
+                                    <label for="studentEmail" class="form-label" style="color:white">Registered Email ID</label>
                                     <input type="email" class="form-control" name="email" id="studentEmail" required
                                            oninvalid="this.setCustomValidity('Please enter a valid email address')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="studentQualification" class="form-label">Qualification</label>
+                                    <label for="studentQualification" class="form-label" style="color:white">Qualification</label>
                                     <input type="text" class="form-control" name="qualification" id="studentQualification" required
                                            oninvalid="this.setCustomValidity('Please enter your qualification')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="studentUniversity" class="form-label">University/School Name</label>
+                                    <label for="studentUniversity" class="form-label" style="color:white">University/School Name</label>
                                     <input type="text" class="form-control" name="university" id="studentUniversity" required
                                            oninvalid="this.setCustomValidity('Please enter your university/school name')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="guardianNumber" class="form-label">Guardian's Number</label>
+                                    <label for="guardianNumber" class="form-label" style="color:white">Guardian's Number</label>
                                     <input type="tel" class="form-control" name="guardian_number" id="guardianNumber" required
                                            pattern="[0-9]{10}"
                                            oninvalid="this.setCustomValidity('Please enter a valid 10-digit phone number')"
@@ -176,27 +176,27 @@ require_once 'assets/vendor/setup.php';
                             <!-- Professional Form Section -->
                             <div id="professionalForm" class="form-section">
                                 <div class="mb-3">
-                                    <label for="professionalName" class="form-label">Name</label>
+                                    <label for="professionalName" class="form-label" style="color:white">Name</label>
                                     <input type="text" class="form-control" name="name" id="professionalName"
                                            oninvalid="this.setCustomValidity('Please enter your name')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="professionalEmail" class="form-label">Registered Email ID</label>
+                                    <label for="professionalEmail" class="form-label" style="color:white">Registered Email ID</label>
                                     <input type="email" class="form-control" name="email" id="professionalEmail"
                                            oninvalid="this.setCustomValidity('Please enter a valid email address')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="professionalDesignation" class="form-label">Designation</label>
+                                    <label for="professionalDesignation" class="form-label" style="color:white">Designation</label>
                                     <input type="text" class="form-control" name="designation" id="professionalDesignation">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="currentCompany" class="form-label">Current Company</label>
+                                    <label for="currentCompany" class="form-label" style="color:white">Current Company</label>
                                     <input type="text" class="form-control" name="company" id="currentCompany">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="currentCTC" class="form-label">Current CTC</label>
+                                    <label for="currentCTC" class="form-label" style="color:white">Current CTC</label>
                                     <input type="text" class="form-control" name="ctc" id="currentCTC">
                                 </div>
                             </div>
@@ -214,7 +214,7 @@ require_once 'assets/vendor/setup.php';
 
     <footer id="footer" class="footer">
         <div class="container copyright text-center mt-4">
-            <p>© <span>Copyright</span> <strong class="px-1 sitename">ZELL 2024</strong> <span>All Rights Reserved</span></p>
+            <p>© <span>Copyright</span> <strong class="px-1 sitename">ZELL 2025</strong> <span>All Rights Reserved</span></p>
             <div class="credits">Designed by <a href="">ZELL</a></div>
         </div>
     </footer>
