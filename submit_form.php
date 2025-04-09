@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Set required fields based on user type
         $requiredFields = ($userType === 'student') 
             ? ['name', 'email', 'qualification', 'university', 'guardian_number']
-            : ['name', 'email', 'designation', 'company', 'ctc'];
+            : ['professional_name', 'professional_email', 'designation', 'company', 'ctc'];
 
         // Validate and sanitize fields
         foreach ($requiredFields as $field) {

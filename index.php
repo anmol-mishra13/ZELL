@@ -180,13 +180,13 @@ require_once 'assets/vendor/setup.php';
                             <div id="professionalForm" class="form-section">
                                 <div class="mb-3">
                                     <label for="professionalName" class="form-label" style="color:white">Name</label>
-                                    <input type="text" class="form-control" name="name" id="professionalName"
+                                    <input type="text" class="form-control" name="professional_name" id="professionalName"
                                            oninvalid="this.setCustomValidity('Please enter your name')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="mb-3">
                                     <label for="professionalEmail" class="form-label" style="color:white">Registered Email ID</label>
-                                    <input type="email" class="form-control" name="email" id="professionalEmail"
+                                    <input type="email" class="form-control" name="professional_email" id="professionalEmail"
                                            oninvalid="this.setCustomValidity('Please enter a valid email address')"
                                            oninput="this.setCustomValidity('')">
                                 </div>
@@ -269,7 +269,7 @@ require_once 'assets/vendor/setup.php';
                 
                 if (!name) {
                     isValid = false;
-                    errorMessage = 'Please enter your name';
+                    errorMessage = 'Please enter your Student Name';
                 } else if (!email) {
                     isValid = false;
                     errorMessage = 'Please enter a valid email address';
