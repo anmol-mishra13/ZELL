@@ -1,89 +1,96 @@
 <?php
 session_start();
-require 'db_config.php';
+require_once 'db_config.php';
+require_once 'mail_config.php';
 
-// Check if the user session is active
+// Check if user is logged in
 if (!isset($_SESSION['user_email'])) {
-    header('Location: index.php');
+    echo json_encode([
+        'success' => false,
+        'error' => 'You must be logged in to schedule an interview.'
+    ]);
     exit();
 }
 
-try {
-    // Database connection
-    $conn = new mysqli(
-        $db_config['host'],
-        $db_config['username'],
-        $db_config['password'],
-        $db_config['database']
-    );
-
-    if ($conn->connect_error) {
-        throw new Exception("Connection failed: " . $conn->connect_error);
-    }
-
-    // Create the `interview_schedules` table if it doesn't exist
-    $createTableSQL = "CREATE TABLE IF NOT EXISTS interview_schedules (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_email VARCHAR(255) NOT NULL,
-        interview_date DATE NOT NULL,
-        interview_time TIME NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )";
-
-    if (!$conn->query($createTableSQL)) {
-        throw new Exception("Error creating table: " . $conn->error);
-    }
-
-    // Input validation
-    $email = $_SESSION['user_email'];
-    $date = $_POST['date'] ?? null;
-    $time = $_POST['time'] ?? null;
-
-    if (empty($date) || empty($time)) {
-        throw new Exception("Date and time are required.");
-    }
-
-    // Insert data into the table
-    $sql = "INSERT INTO interview_schedules (user_email, interview_date, interview_time) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-
-    if (!$stmt) {
-        throw new Exception("Failed to prepare SQL statement: " . $conn->error);
-    }
-
-    $stmt->bind_param("sss", $email, $date, $time);
-
-    if ($stmt->execute()) {
-        // Send confirmation email
-        $to = $email;
-        $subject = "Counselling Schedule Confirmation";
-        $message = "Your counselling has been scheduled for $date at $time.";
-        $headers = "From: noreply@zell.com\r\n";
-        $headers .= "Reply-To: noreply@zell.com\r\n";
-        $headers .= "Content-Type: text/plain; charset=UTF-8";
-
-        if (!mail($to, $subject, $message, $headers)) {
-            throw new Exception("Failed to send confirmation email.");
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    try {
+        // Form validation
+        if (empty($_POST['date']) || empty($_POST['time'])) {
+            throw new Exception("Date and time are required fields");
         }
 
-        // Set session variables for success message
-        $_SESSION['message'] = "Counselling scheduled successfully!";
+        $conn = new mysqli(
+            $db_config['host'],
+            $db_config['username'],
+            $db_config['password'],
+            $db_config['database']
+        );
+
+        if ($conn->connect_error) {
+            throw new Exception("Connection failed: " . $conn->connect_error);
+        }
+
+        $email = $_SESSION['user_email'];
+        $name = $_SESSION['name'];
+        $date = $conn->real_escape_string($_POST['date']);
+        $time = $conn->real_escape_string($_POST['time']);
+
+        // Insert appointment
+        $sql = "INSERT INTO appointments (name, email, appointment_date, appointment_time) 
+                VALUES (?, ?, ?, ?)";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssss", $name, $email, $date, $time);
+        
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
+        }
+
+        // Send confirmation email
+        $mail = new PHPMailer\PHPMailer\PHPMailer();
+        
+        // Configure mail settings from mail_config.php
+        configure_mailer($mail);
+        
+        $mail->addAddress($email, $name);
+        $mail->Subject = 'Interview Scheduled - ZELL Education';
+        
+        $mailBody = "
+            <h1>Interview Confirmation</h1>
+            <p>Dear {$name},</p>
+            <p>Your interview has been scheduled successfully for:</p>
+            <p><strong>Date:</strong> {$date}</p>
+            <p><strong>Time:</strong> {$time}</p>
+            <p>Please be prepared 5 minutes before the scheduled time.</p>
+            <p>Thank you,<br>ZELL Education Team</p>
+        ";
+        
+        $mail->Body = $mailBody;
+        $mail->AltBody = strip_tags($mailBody);
+        
+        if (!$mail->send()) {
+            // Log email error but continue
+            error_log("Email not sent. Error: " . $mail->ErrorInfo);
+        }
+
+        $_SESSION['message'] = "Your interview has been scheduled successfully!";
         $_SESSION['message_type'] = "success";
-        $_SESSION['interview_date'] = $date;
-        $_SESSION['interview_time'] = $time;
-
-        // Redirect to the thank you page
-        header('Location: thank_you.php');
-    } else {
-        throw new Exception("Error scheduling interview: " . $stmt->error);
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Your interview has been scheduled successfully!',
+            'redirect' => 'thank_you.php'
+        ]);
+        
+    } catch (Exception $e) {
+        $_SESSION['message'] = $e->getMessage();
+        $_SESSION['message_type'] = "error";
+        
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
     }
-
-    $stmt->close();
-    $conn->close();
-} catch (Exception $e) {
-    // Set error message in session and redirect to result page
-    $_SESSION['message'] = "Error: " . $e->getMessage();
-    $_SESSION['message_type'] = "error";
-    header('Location: result.php');
+    exit();
 }
 ?>

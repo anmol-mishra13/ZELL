@@ -9,7 +9,9 @@ if (!isset($_SESSION['user_email'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Counselling Scheduled - Zell Education</title>
+    <title>Councelling Scheduled - Zell Education</title>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         * {
             margin: 0;
@@ -105,12 +107,31 @@ if (!isset($_SESSION['user_email'])) {
         <h1>Counselling Scheduled Successfully!</h1>
         <div class="info-box">
             <h2>Councelling Details</h2>
-            <p>Date: <?php echo $_SESSION['interview_date']; ?></p>
-            <p>Time: <?php echo $_SESSION['interview_time']; ?></p>
+            <p>Date: <?php echo isset($_SESSION['interview_date']) ? $_SESSION['interview_date'] : 'Not available'; ?></p>
+            <p>Time: <?php echo isset($_SESSION['interview_time']) ? $_SESSION['interview_time'] : 'Not available'; ?></p>
         </div>
         <p>A confirmation email has been sent to your registered email address with all the details. Please check your inbox.</p>
         <p>Make sure to join the Councelling on time. Best of luck!</p>
         <a href="index.php" class="btn">Back to Home</a>
     </div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        <?php if (isset($_SESSION['message'])): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: '<?php echo $_SESSION['message_type'] === 'success' ? 'Success!' : 'Error!'; ?>',
+                text: '<?php echo addslashes($_SESSION['message']); ?>',
+                icon: '<?php echo $_SESSION['message_type'] === 'success' ? 'success' : 'error'; ?>',
+                confirmButtonColor: '#800080'
+            });
+        });
+        <?php 
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+        endif; 
+        ?>
+    </script>
 </body>
 </html>

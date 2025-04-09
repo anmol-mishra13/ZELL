@@ -25,26 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Connection failed: " . $conn->connect_error);
         }
 
-        // Create the user_profiles table if it doesn't exist
-        $createTableSQL = "CREATE TABLE IF NOT EXISTS user_profiles (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            qualification VARCHAR(255),
-            university VARCHAR(255),
-            guardian_number VARCHAR(15),
-            designation VARCHAR(255),
-            company VARCHAR(255),
-            ctc VARCHAR(255),
-            user_type ENUM('student', 'professional') NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )";
-
-        if (!$conn->query($createTableSQL)) {
-            throw new Exception("Error creating table: " . $conn->error);
-        }
-
-        $userType = sanitize_input($_POST['user_type']);
+        $userType = isset($_POST['user_type']) ? sanitize_input($_POST['user_type']) : sanitize_input($_POST['userType']);
         
         // Initialize fields
         $formData = [
@@ -62,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Set required fields based on user type
         $requiredFields = ($userType === 'student') 
             ? ['name', 'email', 'qualification', 'university', 'guardian_number']
-            : ['name', 'email', 'designation', 'company', 'ctc'];
+            : ['professional_name', 'professional_email', 'designation', 'company', 'ctc'];
 
         // Validate and sanitize fields
         foreach ($requiredFields as $field) {
@@ -99,7 +80,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['name'] = $formData['name'];
             $_SESSION['user_email'] = $formData['email'];
 
-            
             // Return success with redirect URL for AJAX
             echo json_encode([
                 'success' => true,
@@ -112,11 +92,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt->close();
         $conn->close();
-
     } catch(Exception $e) {
         $_SESSION['message'] = "Error: " . $e->getMessage();
-        $_SESSION['message_type'] = "danger";
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        $_SESSION['message_type'] = "error";
+        echo json_encode([
+            'success' => false, 
+            'error' => $e->getMessage()
+        ]);
     }
     exit();
 }

@@ -6,25 +6,34 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
+function configure_mailer($mail) {
+    // Server settings
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = 'zelleducation20@gmail.com';
+    $mail->Password = 'hegxdbjluqvdynf';
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = 587;
+    
+    // Sender
+    $mail->setFrom('zelleducation20@gmail.com', 'Zell Education');
+    
+    // Format
+    $mail->isHTML(true);
+}
+
 function sendMail($to, $subject, $message) {
     $mail = new PHPMailer(true);
 
     try {
-        // Server settings
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'zelleducation20@gmail.com';
-        $mail->Password = 'hegx dbjl uqvd ynf';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        // Configure the mailer
+        configure_mailer($mail);
 
         // Recipients
-        $mail->setFrom('zelleducation20@gmail.com', 'Zell Education');
         $mail->addAddress($to);
 
         // Content
-        $mail->isHTML(true);
         $mail->Subject = $subject;
         $mail->Body = $message;
         $mail->AltBody = strip_tags($message);

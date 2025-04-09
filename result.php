@@ -17,6 +17,8 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
     <title>Schedule Councelling- Zell Education</title>
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         * {
             margin: 0;
@@ -186,7 +188,22 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
         </div>
     </div>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        <?php if (isset($_SESSION['message'])): ?>
+        Swal.fire({
+            title: '<?php echo $_SESSION['message_type'] === 'success' ? 'Success!' : 'Error!'; ?>',
+            text: '<?php echo addslashes($_SESSION['message']); ?>',
+            icon: '<?php echo $_SESSION['message_type'] === 'success' ? 'success' : 'error'; ?>',
+            confirmButtonColor: '#800080'
+        });
+        <?php 
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+        endif; 
+        ?>
+
         flatpickr("#datePicker", {
             enable: [
                 "<?php echo date('Y-m-d',strtotime('+1 day')) ?>",
@@ -197,6 +214,60 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
             maxDate: "<?php echo date('Y-m-d', strtotime('+2 day')) ?>",
             disableMobile: true,
             inline: true
+        });
+
+        // Form submission with SweetAlert
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const formData = new FormData(form);
+            
+            // Show loading state
+            Swal.fire({
+                title: 'Scheduling...',
+                text: 'Please wait while we process your request.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            fetch('save_schedule.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message || 'Your interview has been scheduled successfully!',
+                        icon: 'success',
+                        confirmButtonColor: '#800080'
+                    }).then(() => {
+                        window.location.href = data.redirect || 'thank_you.php';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.error || 'Something went wrong. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#800080'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Something went wrong. Please try again.',
+                    icon: 'error',
+                    confirmButtonColor: '#800080'
+                });
+            });
         });
     </script>
 </body>
