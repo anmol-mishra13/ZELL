@@ -32,6 +32,9 @@ require_once 'assets/vendor/setup.php';
 
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <style>
         .form-section {
@@ -230,6 +233,153 @@ require_once 'assets/vendor/setup.php';
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        function toggleForm() {
+            const userType = document.querySelector('input[name="userType"]:checked').value;
+            
+            if (userType === 'student') {
+                document.getElementById('studentForm').classList.add('active');
+                document.getElementById('professionalForm').classList.remove('active');
+            } else {
+                document.getElementById('studentForm').classList.remove('active');
+                document.getElementById('professionalForm').classList.add('active');
+            }
+        }
+        
+        function submitForm(event) {
+            event.preventDefault();
+            
+            const userType = document.querySelector('input[name="userType"]:checked').value;
+            const form = document.getElementById('userForm');
+            
+            // Validation
+            let isValid = true;
+            let errorMessage = '';
+            
+            if (userType === 'student') {
+                const name = document.getElementById('studentName').value;
+                const email = document.getElementById('studentEmail').value;
+                const qualification = document.getElementById('studentQualification').value;
+                const university = document.getElementById('studentUniversity').value;
+                const guardianNumber = document.getElementById('guardianNumber').value;
+                
+                if (!name) {
+                    isValid = false;
+                    errorMessage = 'Please enter your name';
+                } else if (!email) {
+                    isValid = false;
+                    errorMessage = 'Please enter a valid email address';
+                } else if (!qualification) {
+                    isValid = false;
+                    errorMessage = 'Please enter your qualification';
+                } else if (!university) {
+                    isValid = false;
+                    errorMessage = 'Please enter your university/school name';
+                } else if (!guardianNumber || !/^[0-9]{10}$/.test(guardianNumber)) {
+                    isValid = false;
+                    errorMessage = 'Please enter a valid 10-digit phone number';
+                }
+            } else {
+                const name = document.getElementById('professionalName').value;
+                const email = document.getElementById('professionalEmail').value;
+                const designation = document.getElementById('professionalDesignation').value;
+                const company = document.getElementById('currentCompany').value;
+                const ctc = document.getElementById('currentCTC').value;
+                
+                if (!name) {
+                    isValid = false;
+                    errorMessage = 'Please enter your name';
+                } else if (!email) {
+                    isValid = false;
+                    errorMessage = 'Please enter a valid email address';
+                } else if (!designation) {
+                    isValid = false;
+                    errorMessage = 'Please enter your designation';
+                } else if (!company) {
+                    isValid = false;
+                    errorMessage = 'Please enter your company name';
+                } else if (!ctc) {
+                    isValid = false;
+                    errorMessage = 'Please enter your current CTC';
+                }
+            }
+            
+            if (!isValid) {
+                Swal.fire({
+                    title: 'Validation Error',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonColor: '#800080'
+                });
+                return;
+            }
+            
+            // Show loading indicator
+            Swal.fire({
+                title: 'Submitting...',
+                text: 'Please wait while we process your information.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Form submission
+            const formData = new FormData(form);
+            formData.append('user_type', userType);
+            
+            fetch('submit_form.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message || 'Form submitted successfully!',
+                        icon: 'success',
+                        confirmButtonColor: '#800080'
+                    }).then(() => {
+                        window.location.href = data.redirect || 'test.php';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.error || 'Something went wrong. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#800080'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Something went wrong. Please try again.',
+                    icon: 'error',
+                    confirmButtonColor: '#800080'
+                });
+            });
+        }
+        
+        <?php if (isset($_SESSION['message'])): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: '<?php echo $_SESSION['message_type'] === 'success' ? 'Success!' : 'Error!'; ?>',
+                text: '<?php echo addslashes($_SESSION['message']); ?>',
+                icon: '<?php echo $_SESSION['message_type'] === 'success' ? 'success' : 'error'; ?>',
+                confirmButtonColor: '#800080'
+            });
+        });
+        <?php endif; ?>
+    </script>
 </body>
 
 </html>

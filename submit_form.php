@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Connection failed: " . $conn->connect_error);
         }
 
-        $userType = sanitize_input($_POST['user_type']);
+        $userType = isset($_POST['user_type']) ? sanitize_input($_POST['user_type']) : sanitize_input($_POST['userType']);
         
         // Initialize fields
         $formData = [
@@ -80,7 +80,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['name'] = $formData['name'];
             $_SESSION['user_email'] = $formData['email'];
 
-            
             // Return success with redirect URL for AJAX
             echo json_encode([
                 'success' => true,
@@ -93,12 +92,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt->close();
         $conn->close();
-
-
     } catch(Exception $e) {
         $_SESSION['message'] = "Error: " . $e->getMessage();
-        $_SESSION['message_type'] = "danger";
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        $_SESSION['message_type'] = "error";
+        echo json_encode([
+            'success' => false, 
+            'error' => $e->getMessage()
+        ]);
     }
     exit();
 }

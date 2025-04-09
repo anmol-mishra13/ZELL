@@ -1,58 +1,96 @@
 <?php
 session_start();
-require 'db_config.php';
+require_once 'db_config.php';
+require_once 'mail_config.php';
+
+// Check if user is logged in
 if (!isset($_SESSION['user_email'])) {
-    header('Location: index.php');
+    echo json_encode([
+        'success' => false,
+        'error' => 'You must be logged in to schedule an interview.'
+    ]);
     exit();
 }
 
-try {
-    $conn = $conn = new mysqli(
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    try {
+        // Form validation
+        if (empty($_POST['date']) || empty($_POST['time'])) {
+            throw new Exception("Date and time are required fields");
+        }
+
+        $conn = new mysqli(
             $db_config['host'],
             $db_config['username'],
             $db_config['password'],
             $db_config['database']
         );
 
-    
-    if ($conn->connect_error) {
-        throw new Exception("Connection failed: " . $conn->connect_error);
-    }
+        if ($conn->connect_error) {
+            throw new Exception("Connection failed: " . $conn->connect_error);
+        }
 
-    $email = $_SESSION['user_email'];
-    $date = $_POST['date'];
-    $time = $_POST['time'];
-    
-    $sql = "INSERT INTO interview_schedules (user_email, interview_date, interview_time) 
-            VALUES (?, ?, ?)";
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $email, $date, $time);
-    
-    if ($stmt->execute()) {
+        $email = $_SESSION['user_email'];
+        $name = $_SESSION['name'];
+        $date = $conn->real_escape_string($_POST['date']);
+        $time = $conn->real_escape_string($_POST['time']);
+
+        // Insert appointment
+        $sql = "INSERT INTO appointments (name, email, appointment_date, appointment_time) 
+                VALUES (?, ?, ?, ?)";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssss", $name, $email, $date, $time);
+        
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
+        }
+
         // Send confirmation email
-        $to = $email;
-        $subject = "Councelling Schedule Confirmation";
-        $message = "Your Councelling has been scheduled for $date at $time.";
-        $headers = "From: noreply@zell.com";
+        $mail = new PHPMailer\PHPMailer\PHPMailer();
         
-        mail($to, $subject, $message, $headers);
+        // Configure mail settings from mail_config.php
+        configure_mailer($mail);
         
-        $_SESSION['message'] = "Councelling Scheduled successfully!";
+        $mail->addAddress($email, $name);
+        $mail->Subject = 'Interview Scheduled - ZELL Education';
+        
+        $mailBody = "
+            <h1>Interview Confirmation</h1>
+            <p>Dear {$name},</p>
+            <p>Your interview has been scheduled successfully for:</p>
+            <p><strong>Date:</strong> {$date}</p>
+            <p><strong>Time:</strong> {$time}</p>
+            <p>Please be prepared 5 minutes before the scheduled time.</p>
+            <p>Thank you,<br>ZELL Education Team</p>
+        ";
+        
+        $mail->Body = $mailBody;
+        $mail->AltBody = strip_tags($mailBody);
+        
+        if (!$mail->send()) {
+            // Log email error but continue
+            error_log("Email not sent. Error: " . $mail->ErrorInfo);
+        }
+
+        $_SESSION['message'] = "Your interview has been scheduled successfully!";
         $_SESSION['message_type'] = "success";
-        $_SESSION['interview_date'] = $date;
-        $_SESSION['interview_time'] = $time;
-    } else {
-        throw new Exception("Error scheduling interview");
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Your interview has been scheduled successfully!',
+            'redirect' => 'thank_you.php'
+        ]);
+        
+    } catch (Exception $e) {
+        $_SESSION['message'] = $e->getMessage();
+        $_SESSION['message_type'] = "error";
+        
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
     }
-
-    $stmt->close();
-    $conn->close();
-
-    header('Location: thank_you.php');
-} catch(Exception $e) {
-    $_SESSION['message'] = "Error: " . $e->getMessage();
-    $_SESSION['message_type'] = "error";
-    header('Location: result.php');
+    exit();
 }
 ?>

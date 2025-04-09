@@ -15,6 +15,8 @@ $questions = json_decode(include 'questions.php', true);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assessment - Zell Education</title>
+    <!-- Add SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         * {
             margin: 0;
@@ -339,6 +341,8 @@ $questions = json_decode(include 'questions.php', true);
         </footer>
     </div>
 
+    <!-- Add SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const securityConfig = {
             mediaConstraints: {
@@ -358,6 +362,41 @@ $questions = json_decode(include 'questions.php', true);
         let flaggedQuestions = new Set();
         const questions = <?php echo include 'questions.php'; ?>;
         const totalQuestions = questions.length;
+
+        // Prevent back button
+        history.pushState(null, null, document.URL);
+        window.addEventListener('popstate', function() {
+            history.pushState(null, null, document.URL);
+            showExitConfirmation();
+        });
+
+        // Prevent page refresh using F5, Ctrl+R, and browser refresh button
+        document.addEventListener('keydown', function(e) {
+            if ((e.key === 'F5' || (e.ctrlKey && e.key === 'r')) || (e.keyCode === 116)) {
+                e.preventDefault();
+                e.stopPropagation();
+                showExitConfirmation();
+                return false;
+            }
+        });
+
+        // Show confirmation dialog
+        function showExitConfirmation() {
+            Swal.fire({
+                title: 'End Test?',
+                text: 'Do you want to end the test? All progress will be submitted.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, end test',
+                cancelButtonText: 'No, continue test'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitTest(true);
+                }
+            });
+        }
 
         async function initializeProctoring() {
             try {
@@ -474,6 +513,7 @@ $questions = json_decode(include 'questions.php', true);
 
         function startTimer(duration, display) {
             let timer = duration * 60;
+            let warningShown = false;
             const timerInterval = setInterval(() => {
                 const minutes = parseInt(timer / 60, 10);
                 const seconds = parseInt(timer % 60, 10);
@@ -482,25 +522,92 @@ $questions = json_decode(include 'questions.php', true);
                     (minutes < 10 ? "0" + minutes : minutes) + ":" +
                     (seconds < 10 ? "0" + seconds : seconds);
 
+                // Red color for last 5 minutes
                 if (timer <= 300) {
                     display.style.color = '#ff4444';
+                    
+                    // Show 5-minute warning once
+                    if (timer === 300 && !warningShown) {
+                        Swal.fire({
+                            title: 'Time Alert',
+                            text: 'You have 5 minutes remaining!',
+                            icon: 'warning',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
+                        warningShown = true;
+                    }
+                    
+                    // Show 1-minute warning
+                    if (timer === 60) {
+                        Swal.fire({
+                            title: 'Time Alert',
+                            text: 'You have 1 minute remaining!',
+                            icon: 'warning',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
+                    }
                 }
 
                 if (--timer < 0) {
                     clearInterval(timerInterval);
-                    submitTest(true);
+                    Swal.fire({
+                        title: 'Time\'s Up!',
+                        text: 'Your time has expired. Your test is being submitted.',
+                        icon: 'info',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    }).then(() => {
+                        submitTest(true);
+                    });
                 }
             }, 1000);
         }
 
         function autoSubmitTest(reason) {
-            alert(`Test will be automatically submitted. Reason: ${reason}`);
-            submitTest(true);
+            Swal.fire({
+                title: 'Test Submission',
+                text: `Your test is being submitted. Reason: ${reason}`,
+                icon: 'info',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    setTimeout(() => {
+                        submitTest(true);
+                    }, 2000);
+                }
+            });
         }
 
         async function submitTest(isAutoSubmit = false) {
-            if (!isAutoSubmit && !confirm('Are you sure you want to submit the test?')) {
-                return;
+            if (!isAutoSubmit) {
+                const result = await Swal.fire({
+                    title: 'Submit Test?',
+                    text: 'Are you sure you want to submit the test?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, submit now',
+                    cancelButtonText: 'No, continue test'
+                });
+                
+                if (!result.isConfirmed) {
+                    return;
+                }
             }
 
             const testData = {
@@ -514,6 +621,18 @@ $questions = json_decode(include 'questions.php', true);
             };
 
             try {
+                Swal.fire({
+                    title: 'Submitting Test',
+                    text: 'Please wait while your answers are being submitted...',
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 const response = await fetch('submit_test.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -535,13 +654,30 @@ $questions = json_decode(include 'questions.php', true);
                         videoElement.remove();
                     }
 
-                    window.location.href = 'result.php';
+                    Swal.fire({
+                        title: 'Test Submitted!',
+                        text: 'Your test has been submitted successfully.',
+                        icon: 'success',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'result.php';
+                    });
                 } else {
-                    alert('Error submitting test: ' + result.error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error submitting test: ' + result.error,
+                        icon: 'error'
+                    });
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error submitting test. Please try again.');
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error submitting test. Please try again.',
+                    icon: 'error'
+                });
             }
         }
 
@@ -601,6 +737,14 @@ $questions = json_decode(include 'questions.php', true);
             if (Object.keys(userAnswers).length > 0) {
                 e.preventDefault();
                 e.returnValue = '';
+                
+                // This won't actually show our custom alert due to browser security,
+                // but we'll capture the refresh attempt and handle it with our custom code
+                setTimeout(() => {
+                    showExitConfirmation();
+                }, 1);
+                
+                return '';
             }
         });
 
@@ -616,9 +760,7 @@ $questions = json_decode(include 'questions.php', true);
             document.addEventListener('fullscreenchange', () => {
                 if (!document.fullscreenElement) {
                     logViolation('Fullscreen mode exited');
-                    document.documentElement.requestFullscreen().catch(err => {
-                        autoSubmitTest('Failed to maintain fullscreen mode');
-                    });
+                    autoSubmitTest('Exited fullscreen mode');
                 }
             });
         };
