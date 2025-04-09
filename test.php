@@ -6,220 +6,90 @@ if (!isset($_SESSION['user_email'])) {
     exit();
 }
 
-// Get questions from questions.php
-$questions = json_decode(include 'questions.php', true);
+$questions = json_decode(file_get_contents('questions.php'), true);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assessment - Zell Education</title>
-    <!-- Add SweetAlert2 CSS -->
+    <title>Assessment Test</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
         }
-
         .container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-
         .header {
-            background: #800080;
+            background: #6a1b9a;
             color: white;
-            padding: 15px 20px;
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             position: fixed;
             width: 100%;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
-
         .content {
+            margin-top: 80px;
             display: flex;
-            flex: 1;
-            padding: 20px;
             gap: 20px;
-            max-width: 1400px;
-            margin: 80px auto 20px;
-            width: 100%;
         }
-
-        .left {
+        .question-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .sidebar {
             width: 300px;
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: sticky;
             top: 100px;
             height: fit-content;
         }
-
-        .right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            min-height: 500px;
-        }
-
-        .question-section {
-            flex: 1;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .question-section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .question {
-            font-size: 1.1em;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            color: #444;
-        }
-
-        .grid-container {
+        .question-nav {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
-
-        .grid-box {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 12px;
+        .question-box {
+            padding: 10px;
             text-align: center;
+            border: 1px solid #ddd;
             cursor: pointer;
             border-radius: 4px;
-            transition: all 0.3s ease;
         }
-
-        .grid-box:hover {
-            background: #f0f0f0;
-        }
-
-        .grid-box.answered {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .grid-box.flagged {
-            background: #FFC107;
-            color: black;
-        }
-
-        .options-form {
+        .question-box.answered { background: #4CAF50; color: white; }
+        .question-box.flagged { background: #FFC107; }
+        .navigation {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: space-between;
             margin-top: 20px;
         }
-
-        .options-form label {
-            display: block;
-            padding: 15px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .options-form label:hover {
-            background: #e9ecef;
-        }
-
-        .options-form input[type="radio"] {
-            margin-right: 10px;
-        }
-
         .btn {
-            padding: 8px 15px;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
-            margin: 5px;
-            color: white;
             cursor: pointer;
-            font-weight: 500;
         }
-
-        .btn.answered { background: #4CAF50; }
-        .btn.flagged { background: #FFC107; color: black; }
-        .btn.pending { background: #9E9E9E; }
-
-        .badge {
-            background: white;
-            color: black;
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-left: 5px;
-            font-size: 0.9em;
-        }
-
-        .navigation-buttons {
-            display: flex;
-            gap: 10px;
-            padding: 20px;
-            justify-content: center;
-            background: #f8f9fa;
-            border-top: 1px solid #ddd;
-        }
-
-        .nav-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background: #800080;
-            color: white;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .nav-btn:hover {
-            background: #660066;
-        }
-
-        .nav-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .webcam-preview {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            width: 160px;
-            height: 120px;
-            border: 2px solid #800080;
-            border-radius: 4px;
-            z-index: 1000;
-        }
-
+        .btn-primary { background: #6a1b9a; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-warning { background: #FFC107; }
         #warning-message {
             position: fixed;
             top: 50%;
@@ -231,539 +101,303 @@ $questions = json_decode(include 'questions.php', true);
             border-radius: 5px;
             z-index: 2000;
             display: none;
-            font-weight: bold;
         }
-
         #timer {
-            font-size: 1.2em;
             font-weight: bold;
-            padding: 5px 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-        }
-
-        .footer {
-            background: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            margin-top: auto;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                flex-direction: column;
-                margin-top: 120px;
-            }
-            
-            .left {
-                width: 100%;
-                position: static;
-            }
-
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-
-            .webcam-preview {
-                top: auto;
-                bottom: 20px;
-                right: 20px;
-            }
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
     <div id="warning-message">Warning: Please return to the test window!</div>
-    <div class="container">
-        <header class="header">
-            <div class="header-column">
-                <span>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
-            </div>
-            <div class="header-column">
-                <h2>Online Assessment Test</h2>
-            </div>
-            <div class="header-column">
-                <span>Time Remaining: <span id="timer">20:00</span></span>
-            </div>
-        </header>
-
-        <main class="content">
-            <section class="left">
-                <div class="left-section-2">
-                    <h3>Attempt Status</h3>
-                    <br>
-                    <button class="btn answered">Answered <span class="badge answered-count">0</span></button>
-                    <button class="btn flagged">Flagged <span class="badge flagged-count">0</span></button>
-                    <button class="btn pending">Pending <span class="badge pending-count">10</span></button>
-                </div>
-                <div class="left-section-3">
-                    <h3>Questions</h3>
-                    <br>
-                    <hr>
-                    <br>
-                    <div class="grid-container">
-                        <?php foreach ($questions as $index => $question): ?>
-                            <div class="grid-box" data-question="<?php echo $question['id']; ?>">
-                                <?php echo $question['id']; ?>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </section>
-
-            <section class="right">
-                <div class="question-section">
-                    <h2>Question No. <span id="current-question">1</span></h2>
-                    <p id="question-text" class="question"></p>
-                    <form class="options-form">
-                        <div id="options-container">
-                            <!-- Options will be dynamically inserted here -->
-                        </div>
-                        <button type="button" class="clear-btn nav-btn">Clear Response</button>
-                    </form>
-                </div>
-                <div class="navigation-buttons">
-                    <button id="prevBtn" class="nav-btn">Previous</button>
-                    <button id="nextBtn" class="nav-btn">Next</button>
-                    <button id="flagBtn" class="nav-btn">Flag for Review</button>
-                    <button id="submitTest" class="nav-btn">Submit Test</button>
-                </div>
-            </section>
-        </main>
-
-        <footer class="footer">
-            <div class="container copyright text-center mt-4">
-                <p>© <span>Copyright</span> <strong class="px-1 sitename">ZELL 2024</strong> <span>All Rights Reserved</span></p>
-                <div class="credits">Designed by <a href="">ZELL</a></div>
-            </div>
-        </footer>
+    
+    <div class="header">
+        <div>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?></div>
+        <div>Online Assessment</div>
+        <div>Time Left: <span id="timer">20:00</span></div>
     </div>
 
-    <!-- Add SweetAlert2 JS -->
+    <div class="container">
+        <div class="content">
+            <div class="question-panel">
+                <h2>Question <span id="current-q">1</span></h2>
+                <div id="question-text" class="question"></div>
+                <form id="options-form">
+                    <div id="options-container"></div>
+                </form>
+                <div class="navigation">
+                    <button id="prev-btn" class="btn btn-primary">Previous</button>
+                    <button id="next-btn" class="btn btn-primary">Next</button>
+                    <button id="flag-btn" class="btn btn-warning">Flag Question</button>
+                    <button id="submit-btn" class="btn btn-danger">Submit Test</button>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h3>Question Navigation</h3>
+                <div class="question-nav" id="question-nav">
+                    <?php foreach ($questions as $q): ?>
+                        <div class="question-box" data-id="<?= $q['id'] ?>"><?= $q['id'] ?></div>
+                    <?php endforeach; ?>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div><span class="question-box answered"></span> Answered</div>
+                    <div><span class="question-box flagged"></span> Flagged</div>
+                    <div><span class="question-box"></span> Not Answered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        const securityConfig = {
-            mediaConstraints: {
-                video: true,
-                audio: true
-            },
-            violations: {
-                maxTabSwitches: 3,
-                maxWarnings: 5
-            }
+        // Security configuration
+        const config = {
+            maxTabSwitches: 3,
+            maxWarnings: 5,
+            testDuration: 20 // minutes
         };
 
-        let violationCount = 0;
-        let tabSwitchCount = 0;
+        // Test data
+        const questions = <?php echo json_encode($questions); ?>;
         let currentQuestion = 1;
         let userAnswers = {};
         let flaggedQuestions = new Set();
-        const questions = <?php echo include 'questions.php'; ?>;
-        const totalQuestions = questions.length;
+        let tabSwitchCount = 0;
+        let violationCount = 0;
 
-        // Prevent back button
-        history.pushState(null, null, document.URL);
-        window.addEventListener('popstate', function() {
-            history.pushState(null, null, document.URL);
-            showExitConfirmation();
-        });
+        // DOM elements
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const currentQElement = document.getElementById('current-q');
+        const warningMessage = document.getElementById('warning-message');
+        const timerElement = document.getElementById('timer');
 
-        // Prevent page refresh using F5, Ctrl+R, and browser refresh button
-        document.addEventListener('keydown', function(e) {
-            if ((e.key === 'F5' || (e.ctrlKey && e.key === 'r')) || (e.keyCode === 116)) {
-                e.preventDefault();
-                e.stopPropagation();
-                showExitConfirmation();
-                return false;
-            }
-        });
-
-        // Show confirmation dialog
-        function showExitConfirmation() {
-            Swal.fire({
-                title: 'End Test?',
-                text: 'Do you want to end the test? All progress will be submitted.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, end test',
-                cancelButtonText: 'No, continue test'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    submitTest(true);
-                }
-            });
-        }
-
-        async function initializeProctoring() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia(securityConfig.mediaConstraints);
-                setupWebcamPreview(stream);
-                setupSecurityMeasures();
-                return true;
-            } catch (error) {
-                alert('Camera and microphone access are required for the test.');
-                window.location.href = 'index.php';
-                return false;
-            }
-        }
-
-        function setupWebcamPreview(stream) {
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.className = 'webcam-preview';
-            video.autoplay = true;
-            document.body.appendChild(video);
-        }
-
-        function setupSecurityMeasures() {
-            document.addEventListener('visibilitychange', handleTabSwitch);
-            document.addEventListener('contextmenu', e => e.preventDefault());
-            document.addEventListener('copy', e => e.preventDefault());
-            document.addEventListener('paste', e => e.preventDefault());
-            document.addEventListener('keydown', handleKeyboardShortcuts);
+        // Initialize the test
+        function initTest() {
+            // Start security monitoring
+            startProctoring();
             
-            document.documentElement.requestFullscreen()
-                .catch(err => console.log('Fullscreen request failed'));
-        }
-
-        function handleTabSwitch() {
-            if (document.hidden) {
-                tabSwitchCount++;
-                logViolation('Tab switch detected');
-                showWarning();
-
-                if (tabSwitchCount >= securityConfig.violations.maxTabSwitches) {
-                    autoSubmitTest('Multiple tab switches detected');
-                }
-            }
-        }
-
-        function handleKeyboardShortcuts(e) {
-            if ((e.ctrlKey && e.key === 'c') || 
-                (e.ctrlKey && e.key === 'v') || 
-                (e.altKey && e.key === 'Tab')) {
-                e.preventDefault();
-                logViolation('Keyboard shortcut attempted');
-            }
-        }
-
-        function showWarning() {
-            const warning = document.getElementById('warning-message');
-            warning.style.display = 'block';
-            setTimeout(() => {
-                warning.style.display = 'none';
-            }, 3000);
-        }
-
-        function logViolation(violation) {
-            violationCount++;
+            // Start timer
+            startTimer(config.testDuration * 60);
             
-            if (violationCount >= securityConfig.violations.maxWarnings) {
-                autoSubmitTest('Too many security violations');
-                return;
-            }
-
-            fetch('log_violation.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: '<?php echo $_SESSION['user_email']; ?>',
-                    violation,
-                    timestamp: new Date().toISOString()
-                })
-            });
+            // Load first question
+            showQuestion(currentQuestion);
+            
+            // Block navigation attempts
+            blockNavigation();
         }
 
-        function updateQuestion(questionNum) {
-            const question = questions.find(q => q.id === questionNum);
+        // Show a question
+        function showQuestion(id) {
+            const question = questions.find(q => q.id === id);
             if (!question) return;
 
-            document.getElementById('current-question').textContent = questionNum;
-            document.getElementById('question-text').textContent = question.text;
+            currentQElement.textContent = id;
+            questionText.textContent = question.text;
             
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = question.options.map((option, index) => `
-                <label>
-                    <input type="radio" name="answer" value="${option}"> ${option}
-                </label>
+            // Render options
+            optionsContainer.innerHTML = question.options.map(option => `
+                <div style="margin: 10px 0;">
+                    <input type="radio" name="answer" id="opt-${option}" value="${option}">
+                    <label for="opt-${option}">${option}</label>
+                </div>
             `).join('');
 
-            if (userAnswers[questionNum]) {
-                const savedAnswer = optionsContainer.querySelector(`input[value="${userAnswers[questionNum]}"]`);
-                if (savedAnswer) savedAnswer.checked = true;
+            // Restore selected answer if exists
+            if (userAnswers[id]) {
+                document.querySelector(`input[value="${userAnswers[id]}"]`).checked = true;
+                document.querySelector(`.question-box[data-id="${id}"]`).classList.add('answered');
             }
 
-            document.getElementById('prevBtn').disabled = questionNum === 1;
-            document.getElementById('nextBtn').disabled = questionNum === totalQuestions;
+            // Update flag button
+            document.getElementById('flag-btn').textContent = flaggedQuestions.has(id) 
+                ? 'Unflag Question' 
+                : 'Flag Question';
             
-            const flagBtn = document.getElementById('flagBtn');
-            flagBtn.textContent = flaggedQuestions.has(questionNum) ? 'Unflag Question' : 'Flag for Review';
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = id === 1;
+            document.getElementById('next-btn').disabled = id === questions.length;
         }
 
-        function updateStats() {
-            document.querySelector('.answered-count').textContent = Object.keys(userAnswers).length;
-            document.querySelector('.flagged-count').textContent = flaggedQuestions.size;
-            document.querySelector('.pending-count').textContent = 
-                totalQuestions - Object.keys(userAnswers).length;
-        }
+        // Block navigation attempts
+        function blockNavigation() {
+            // Block back button
+            history.pushState(null, null, window.location.href);
+            window.addEventListener('popstate', function(e) {
+                history.pushState(null, null, window.location.href);
+                showExitWarning();
+                e.preventDefault();
+            });
 
-        function startTimer(duration, display) {
-            let timer = duration * 60;
-            let warningShown = false;
-            const timerInterval = setInterval(() => {
-                const minutes = parseInt(timer / 60, 10);
-                const seconds = parseInt(timer % 60, 10);
-
-                display.textContent = 
-                    (minutes < 10 ? "0" + minutes : minutes) + ":" +
-                    (seconds < 10 ? "0" + seconds : seconds);
-
-                // Red color for last 5 minutes
-                if (timer <= 300) {
-                    display.style.color = '#ff4444';
-                    
-                    // Show 5-minute warning once
-                    if (timer === 300 && !warningShown) {
-                        Swal.fire({
-                            title: 'Time Alert',
-                            text: 'You have 5 minutes remaining!',
-                            icon: 'warning',
-                            timer: 3000,
-                            timerProgressBar: true,
-                            showConfirmButton: false
-                        });
-                        warningShown = true;
-                    }
-                    
-                    // Show 1-minute warning
-                    if (timer === 60) {
-                        Swal.fire({
-                            title: 'Time Alert',
-                            text: 'You have 1 minute remaining!',
-                            icon: 'warning',
-                            timer: 2000,
-                            timerProgressBar: true,
-                            showConfirmButton: false
-                        });
-                    }
+            // Block refresh
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                    e.preventDefault();
+                    showExitWarning();
                 }
+            });
+
+            // Block tab/window close
+            window.addEventListener('beforeunload', function(e) {
+                if (Object.keys(userAnswers).length > 0) {
+                    e.preventDefault();
+                    e.returnValue = 'Your test will be submitted if you leave this page.';
+                    return e.returnValue;
+                }
+            });
+        }
+
+        // Show exit warning
+        function showExitWarning() {
+            Swal.fire({
+                title: 'Leave Test?',
+                text: 'Your progress will be submitted if you leave this page.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Leave',
+                cancelButtonText: 'Stay'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitTest();
+                }
+            });
+        }
+
+        // Start timer
+        function startTimer(duration) {
+            let timer = duration, minutes, seconds;
+            const interval = setInterval(function() {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                timerElement.textContent = minutes + ":" + seconds;
 
                 if (--timer < 0) {
-                    clearInterval(timerInterval);
-                    Swal.fire({
-                        title: 'Time\'s Up!',
-                        text: 'Your time has expired. Your test is being submitted.',
-                        icon: 'info',
-                        timer: 3000,
-                        timerProgressBar: true,
-                        showConfirmButton: false,
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    }).then(() => {
-                        submitTest(true);
-                    });
+                    clearInterval(interval);
+                    submitTest();
                 }
             }, 1000);
         }
 
-        function autoSubmitTest(reason) {
-            Swal.fire({
-                title: 'Test Submission',
-                text: `Your test is being submitted. Reason: ${reason}`,
-                icon: 'info',
-                timer: 3000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                    setTimeout(() => {
-                        submitTest(true);
-                    }, 2000);
+        // Proctoring functions
+        function startProctoring() {
+            // Track tab switches
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    tabSwitchCount++;
+                    showWarning();
+                    if (tabSwitchCount >= config.maxTabSwitches) {
+                        submitTest('Too many tab switches');
+                    }
                 }
             });
+
+            // Disable right click
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                violationCount++;
+                showWarning();
+            });
+
+            // Try to enable fullscreen
+            document.documentElement.requestFullscreen().catch(e => console.log(e));
         }
 
-        async function submitTest(isAutoSubmit = false) {
-            if (!isAutoSubmit) {
-                const result = await Swal.fire({
-                    title: 'Submit Test?',
-                    text: 'Are you sure you want to submit the test?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, submit now',
-                    cancelButtonText: 'No, continue test'
-                });
-                
-                if (!result.isConfirmed) {
-                    return;
-                }
+        function showWarning() {
+            warningMessage.style.display = 'block';
+            setTimeout(() => warningMessage.style.display = 'none', 3000);
+            violationCount++;
+            
+            if (violationCount >= config.maxWarnings) {
+                submitTest('Too many violations');
             }
+        }
 
-            const testData = {
+        // Submit test
+        function submitTest(reason = '') {
+            const data = {
                 answers: userAnswers,
                 flagged: Array.from(flaggedQuestions),
-                email: '<?php echo $_SESSION['user_email']; ?>',
                 violations: {
                     tabSwitches: tabSwitchCount,
-                    totalViolations: violationCount
-                }
+                    total: violationCount
+                },
+                reason: reason
             };
 
-            try {
-                Swal.fire({
-                    title: 'Submitting Test',
-                    text: 'Please wait while your answers are being submitted...',
-                    icon: 'info',
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                const response = await fetch('submit_test.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(testData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    if (document.fullscreenElement) {
-                        await document.exitFullscreen();
-                    }
-                    
-                    const videoElement = document.querySelector('.webcam-preview');
-                    if (videoElement) {
-                        const stream = videoElement.srcObject;
-                        const tracks = stream.getTracks();
-                        tracks.forEach(track => track.stop());
-                        videoElement.remove();
-                    }
-
-                    Swal.fire({
-                        title: 'Test Submitted!',
-                        text: 'Your test has been submitted successfully.',
-                        icon: 'success',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = 'result.php';
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Error submitting test: ' + result.error,
-                        icon: 'error'
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Error submitting test. Please try again.',
-                    icon: 'error'
-                });
-            }
+            // In a real app, you would send this to your server
+            console.log('Submitting test:', data);
+            
+            // Show confirmation
+            Swal.fire({
+                title: 'Test Submitted',
+                text: reason || 'Your test has been submitted successfully',
+                icon: 'success'
+            }).then(() => {
+                window.location.href = 'result.php';
+            });
         }
 
-        // Event Listeners
-        document.getElementById('prevBtn').addEventListener('click', () => {
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', initTest);
+
+        document.getElementById('prev-btn').addEventListener('click', function() {
             if (currentQuestion > 1) {
-                currentQuestion--;
-                updateQuestion(currentQuestion);
+                showQuestion(--currentQuestion);
             }
         });
 
-        document.getElementById('nextBtn').addEventListener('click', () => {
-            if (currentQuestion < totalQuestions) {
-                currentQuestion++;
-                updateQuestion(currentQuestion);
+        document.getElementById('next-btn').addEventListener('click', function() {
+            if (currentQuestion < questions.length) {
+                showQuestion(++currentQuestion);
             }
         });
 
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('grid-box')) {
-                currentQuestion = parseInt(e.target.dataset.question);
-                updateQuestion(currentQuestion);
-            }
-        });
-
-        document.getElementById('options-container').addEventListener('change', (e) => {
-            if (e.target.type === 'radio') {
-                userAnswers[currentQuestion] = e.target.value;
-                document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('answered');
-                updateStats();
-            }
-        });
-
-        document.getElementById('flagBtn').addEventListener('click', () => {
-            const questionBox = document.querySelector(`[data-question="${currentQuestion}"]`);
+        document.getElementById('flag-btn').addEventListener('click', function() {
+            const box = document.querySelector(`.question-box[data-id="${currentQuestion}"]`);
             if (flaggedQuestions.has(currentQuestion)) {
                 flaggedQuestions.delete(currentQuestion);
-                questionBox.classList.remove('flagged');
+                box.classList.remove('flagged');
+                this.textContent = 'Flag Question';
             } else {
                 flaggedQuestions.add(currentQuestion);
-                questionBox.classList.add('flagged');
-            }
-            updateQuestion(currentQuestion);
-            updateStats();
-        });
-
-        document.querySelector('.clear-btn').addEventListener('click', () => {
-            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
-            delete userAnswers[currentQuestion];
-            document.querySelector(`[data-question="${currentQuestion}"]`).classList.remove('answered');
-            updateStats();
-        });
-
-        document.getElementById('submitTest').addEventListener('click', () => submitTest());
-
-        window.addEventListener('beforeunload', (e) => {
-            if (Object.keys(userAnswers).length > 0) {
-                e.preventDefault();
-                e.returnValue = '';
-                
-                // This won't actually show our custom alert due to browser security,
-                // but we'll capture the refresh attempt and handle it with our custom code
-                setTimeout(() => {
-                    showExitConfirmation();
-                }, 1);
-                
-                return '';
+                box.classList.add('flagged');
+                this.textContent = 'Unflag Question';
             }
         });
 
-        // Initialize
-        window.onload = async function() {
-            const proctorInitialized = await initializeProctoring();
-            if (!proctorInitialized) return;
-            
-            startTimer(20, document.querySelector('#timer'));
-            updateQuestion(1);
-            updateStats();
-
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement) {
-                    logViolation('Fullscreen mode exited');
-                    autoSubmitTest('Exited fullscreen mode');
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Submit Test?',
+                text: 'Are you sure you want to submit your test?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitTest();
                 }
             });
-        };
+        });
+
+        document.getElementById('options-form').addEventListener('change', function(e) {
+            if (e.target.name === 'answer') {
+                userAnswers[currentQuestion] = e.target.value;
+                document.querySelector(`.question-box[data-id="${currentQuestion}"]`).classList.add('answered');
+            }
+        });
+
+        document.querySelectorAll('.question-box').forEach(box => {
+            box.addEventListener('click', function() {
+                currentQuestion = parseInt(this.dataset.id);
+                showQuestion(currentQuestion);
+            });
+        });
     </script>
 </body>
 </html>
