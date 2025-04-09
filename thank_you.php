@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_email'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Councelling Scheduled - Zell Education</title>
+    <title>Counselling Scheduled - Zell Education</title>
     <style>
         * {
             margin: 0;
@@ -102,7 +102,7 @@ if (!isset($_SESSION['user_email'])) {
 <body>
     <div class="container">
         <div class="success-icon">✓</div>
-        <h1>Councelling Scheduled Successfully!</h1>
+        <h1>Counselling Scheduled Successfully!</h1>
         <div class="info-box">
             <h2>Councelling Details</h2>
             <p>Date: <?php echo $_SESSION['interview_date']; ?></p>

@@ -2,31 +2,37 @@
 return json_encode([
     [
         'id' => 1,
-        'text' => 'Five children A, B, C, D, and E are standing in ascending order of their heights. C is shorter than B but taller than D. A is taller than E but shorter than C. D is the second shortest. Who is the shortest?',
-        'options' => ['E', 'B', 'C', 'None'],
-        'correct_answer' => 'E'
+        'text' => 'Which of the following is the primary objective of financial accounting?',
+        'options' => [
+            'To provide information for decision-making', 
+            'To help in day-to-day operations', 
+            'To monitor employee performance', 
+            'To provide information only for internal use
+'
+        ],
+        'correct_answer' => 'To provide information for decision-making'
     ],
     [
         'id' => 2,
-        'text' => 'What is the main purpose of double-entry bookkeeping?',
+        'text' => 'What does the acronym ACCA stand for?',
         'options' => [
-            'To record transactions twice',
-            'To ensure each transaction affects both debit and credit accounts equally',
-            'To double check entries',
-            'To make accounting more complex'
+            'Association of Chartered Certified Accountants',
+            'Accountants of Chartered Certified Analysts',
+            'Association of Certified Chartered Accountants',
+            'Accountancy Chartered and Certified Association'
         ],
-        'correct_answer' => 'To ensure each transaction affects both debit and credit accounts equally'
+        'correct_answer' => 'Association of Chartered Certified Accountants'
     ],
     [
         'id' => 3,
-        'text' => 'Which financial statement shows a company\'s financial position at a specific point in time?',
+        'text' => 'Which of the following is a key feature of an Income Statement?',
         'options' => [
-            'Income Statement',
-            'Balance Sheet',
-            'Cash Flow Statement',
-            'Profit & Loss Statement'
+            'Records cash inflows and outflows',
+            'Shows the financial position of a business at a specific date',
+            'Reflects the profit or loss over a specific period',
+            'Contains only the assets and liabilities of a business'
         ],
-        'correct_answer' => 'Balance Sheet'
+        'correct_answer' => ' Reflects the profit or loss over a specific period'
     ],
     [
         'id' => 4,
@@ -63,14 +69,14 @@ return json_encode([
     ],
     [
         'id' => 7,
-        'text' => 'What is the purpose of a trial balance?',
+        'text' => 'What is the role of an auditor in financial reporting?',
         'options' => [
-            'To list all transactions',
-            'To prove debits equal credits',
-            'To calculate profit',
-            'To prepare tax returns'
+            'To prepare the financial statements',
+            'To make investment decisions for the company',
+            'To ensure accuracy and fairness in financial statements',
+            'To calculate the tax liabilities'
         ],
-        'correct_answer' => 'To prove debits equal credits'
+        'correct_answer' => ' To ensure accuracy and fairness in financial statements'
     ],
     [
         'id' => 8,
@@ -96,14 +102,14 @@ return json_encode([
     ],
     [
         'id' => 10,
-        'text' => 'What does GAAP stand for?',
+        'text' => 'What is the primary purpose of the Statement of Financial Position?',
         'options' => [
-            'General Accepted Accounting Principles',
-            'Generally Accepted Accounting Practices',
-            'Generally Accepted Accounting Principles',
-            'General Accounting and Auditing Principles'
+            'To determine the cash inflows and outflows of the business',
+            'To summarize the expenses over a period',
+            'To show the companys assets, liabilities, and equity',
+            'To report the tax liabilities of the company'
         ],
-        'correct_answer' => 'Generally Accepted Accounting Principles'
+        'correct_answer' => 'To show the companys assets, liabilities, and equity'
     ]
 ]);
 ?>

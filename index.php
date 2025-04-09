@@ -92,8 +92,8 @@ require_once 'assets/vendor/setup.php';
             <div class="container">
                 <div class="row gy-4">
                     <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
-                        <h1>Kickstart your ACCA journey with Zell</h1>
-                        <p>your path to global opportunities<br> Get access to<span class="change_content"></span></p>
+                        <h1>Kickstart your Career in Accounting & Finance with Zell Education</h1>
+                        <p>your path to global opportunities<br> Get access to <span class="change_content"></span></p>
                         <div class="d-flex">
                             <a class="btn-getstarted" data-bs-toggle="modal" data-bs-target="#quizModal">Start Assessment</a>
                             <a href="https://youtu.be/jhhu451wzag" target="_blank" class="glightbox btn-watch-video d-flex align-items-center">

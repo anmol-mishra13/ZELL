@@ -167,7 +167,7 @@ $timeSlots = ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
         <?php endif; ?>
 
         <div class="schedule-section">
-            <h2>Schedule Your Interview</h2>
+            <h2>Schedule Your Counselling Session</h2>
             <form action="save_schedule.php" method="POST">
                 <div class="form-group">
                     <label>Select Date:</label>
